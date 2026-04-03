@@ -63,7 +63,7 @@ app.post('/api/admin/login', (req, res) => {
     }
 });
 
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname)));
 
 // ── WAVE API ──
 app.post('/api/create-wave-session', async (req, res) => {
@@ -86,6 +86,26 @@ app.post('/api/wave-webhook', (req, res) => {
     res.status(200).send('OK');
 });
 
+// ── INITIALISATION TELEGRAM BOTS ──
+const chatId = process.env.TELEGRAM_CHAT_ID;
+const driverChatId = process.env.TELEGRAM_DRIVER_CHAT_ID || chatId;
+const adminIds = (process.env.ADMIN_TELEGRAM_IDS || "").split(',').map(id => id.trim());
+
+let bot = null; // Bot Admin (Annonces, Gestion)
+let driverBot = null; // Bot Livreur (Missions, Livreurs)
+
+if (process.env.TELEGRAM_BOT_TOKEN) {
+    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
+    console.log("🤖 Bot Admin activé");
+}
+
+if (process.env.TELEGRAM_DRIVER_BOT_TOKEN) {
+    driverBot = new TelegramBot(process.env.TELEGRAM_DRIVER_BOT_TOKEN, { polling: true });
+    console.log("🤖 Bot Livreur activé");
+}
+
+const activeBot = driverBot || bot;
+
 // ── API LIVREUR ──
 app.get('/api/driver/auth', async (req, res) => {
     const { id } = req.query;
@@ -107,82 +127,123 @@ app.get('/api/orders/all', async (req, res) => {
 app.post('/api/driver/claim', async (req, res) => {
     const { orderId, driverId } = req.body;
     try {
-        const { data: order } = await supabase.from('orders').select('driver_id').eq('transaction_id', orderId).single();
-        if (!order || order.driver_id) return res.status(400).json({ success: false });
-        
         const { data: driver } = await supabase.from('drivers').select('*').eq('id', driverId).single();
-            if (!driver) {
-                return bot.answerCallbackQuery(query.id, { text: "⚠️ Vous n'êtes pas inscrit. Tapez /inscription VotreNom VotreNumero", show_alert: true });
-            }
-            if (driver.active === false) {
-                return bot.answerCallbackQuery(query.id, { text: "⏳ Votre compte est en attente d'approbation par l'administrateur.", show_alert: true });
+        if (!driver || !driver.active) {
+            return res.status(403).json({ success: false, error: 'Compte non activé' });
+        }
+
+        const { data: order } = await supabase.from('orders').select('driver_id').eq('transaction_id', orderId).single();
+        if (!order || order.driver_id) return res.status(400).json({ success: false, error: 'Déjà pris' });
+
+        await supabase.from('orders').update({
+            driver_id: driverId,
+            status: 'livre',
+            updated_at: new Date().toISOString()
+        }).eq('transaction_id', orderId);
+
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ success: false }); }
+});
+
+// ── LOGIQUE TELEGRAM (CALLBACKS & COMMANDES) ──
+if (activeBot) {
+    activeBot.on('callback_query', async (query) => {
+        const data = query.data;
+
+        // Approbation d'un nouveau livreur
+        if (data.startsWith('approve_') || data.startsWith('reject_')) {
+            const parts = data.split('_');
+            const action = parts[0];
+            const dId = parts[1];
+            const dName = parts.slice(2).join(' ');
+
+            if (!adminIds.includes(query.from.id.toString())) {
+                return activeBot.answerCallbackQuery(query.id, { text: "❌ Action réservée aux admins.", show_alert: true });
             }
 
-                return bot.answerCallbackQuery(query.id, { text: "⚠️ Vous n'êtes pas inscrit comme livreur. Tapez /inscription VotreNom VotreNumero" , show_alert: true });
+            if (action === 'approve_') {
+                await supabase.from('drivers').update({ active: true }).eq('id', dId);
+                activeBot.sendMessage(dId, "✅ Votre compte livreur Lemontini a été APPROUVÉ ! Tapez /livreur pour commencer.");
+                activeBot.editMessageText(`✅ Livreur *${dName}* approuvé.`, { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'Markdown' });
+            } else {
+                await supabase.from('drivers').delete().eq('id', dId);
+                activeBot.editMessageText(`❌ Demande de *${dName}* refusée.`, { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'Markdown' });
             }
-            
+            return;
+        }
+
+        // Prise en charge d'une commande (Claim)
+        if (data.startsWith('claim_')) {
+            const orderId = data.split('_')[1];
+            const driverId = query.from.id.toString();
+
+            const { data: driver } = await supabase.from('drivers').select('*').eq('id', driverId).single();
+            if (!driver) return activeBot.answerCallbackQuery(query.id, { text: "⚠️ Inscrivez-vous avec /inscription [Nom] [Tel]", show_alert: true });
+            if (!driver.active) return activeBot.answerCallbackQuery(query.id, { text: "⏳ En attente de validation admin.", show_alert: true });
+
             const { data: order } = await supabase.from('orders').select('*').eq('transaction_id', orderId).single();
-            if (!order) return bot.answerCallbackQuery(query.id, { text: "Commande introuvable" });
-            
-            if (order.driver_id) {
-                const { data: existingDriver } = await supabase.from('drivers').select('name').eq('id', order.driver_id).single();
-                return bot.answerCallbackQuery(query.id, { text: `❌ Déjà prise par ${existingDriver ? existingDriver.name : 'un autre livreur'}`, show_alert: true });
-            }
-            
-            await supabase.from('orders').update({
-                driver_id: driverId,
-                status: 'livre',
-                updated_at: new Date().toISOString()
-            }).eq('transaction_id', orderId);
-            
-            bot.editMessageText(header + msgBody, {
+            if (order.driver_id) return activeBot.answerCallbackQuery(query.id, { text: "❌ Déjà pris par un autre livreur.", show_alert: true });
+
+            await supabase.from('orders').update({ driver_id: driverId, status: 'livre', updated_at: new Date().toISOString() }).eq('transaction_id', orderId);
+
+            activeBot.editMessageText(`🟢 *EN COURS DE LIVRAISON*\n🛵 Livreur : *${driver.name}*\n📦 Commande : \`${orderId}\``, {
                 chat_id: query.message.chat.id,
                 message_id: query.message.message_id,
                 parse_mode: 'Markdown',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: '💬 Envoyer WhatsApp au Client', url: waUrl }],
-                        [{ text: '✅ Marquer comme Livré', callback_data: `status_${orderId}_done` }]
-                    ]
-                }
-            }).catch(err => {});
+                reply_markup: { inline_keyboard: [[{ text: "🏁 Marquer comme livré", callback_data: `status_${orderId}_done` }]] }
+            });
+            return activeBot.answerCallbackQuery(query.id, { text: "C'est parti ! 🚀" });
+        }
+
+        // Changements de statuts divers
+        if (data.startsWith('status_')) {
+            const parts = data.split('_');
+            const orderId = parts[1];
+            const newStatus = parts[2] === 'done' ? 'termine' : parts[2];
+            
+            await supabase.from('orders').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('transaction_id', orderId);
+            activeBot.answerCallbackQuery(query.id, { text: `Statut mis à jour : ${newStatus}` });
+            
+            if (newStatus === 'termine') {
+                activeBot.editMessageText(`🏁 *LIVRAISON TERMINÉE*\n📦 Commande : \`${orderId}\`\n💰 Paiement encaissé. Merci !`, {
+                    chat_id: query.message.chat.id,
+                    message_id: query.message.message_id,
+                    parse_mode: 'Markdown'
+                });
+            }
         }
     });
-    
-    bot.onText(/\/inscription (.+) (.+)/, async (msg, match) => {
-        const driverId = msg.from.id.toString();
+
+    activeBot.onText(/\/inscription (.+) (.+)/, async (msg, match) => {
+        const dId = msg.from.id.toString();
         const name = match[1];
         const phone = match[2];
+        await supabase.from('drivers').upsert({ id: dId, name, phone, active: false });
+        activeBot.sendMessage(msg.chat.id, "📩 *Demande envoyée !* Votre inscription est en attente de validation par l'administrateur.");
         
-        await supabase.from('drivers').upsert({ id: driverId, name, phone });
-        
-        bot.sendMessage(msg.chat.id, `✅ Inscription réussie !\n\nNom: *${name}*\nTéléphone: *${phone}*\n\nVous recevrez désormais les propositions de livraison.`, { parse_mode: 'Markdown' });
+        if (bot && chatId) {
+            bot.sendMessage(chatId, `🔔 *NOUVEAU LIVREUR*\n👤 Nom : ${name}\n📞 Tel : ${phone}\n🆔 ID : \`${dId}\``, {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [[
+                        { text: '✅ APPROUVER', callback_data: `approve_${dId}_${name}` },
+                        { text: '❌ REFUSER', callback_data: `reject_${dId}_${name}` }
+                    ]]
+                }
+            });
+        }
     });
 
-    bot.onText(/\/id/, (msg) => {
-        bot.sendMessage(msg.chat.id, `👤 *Information Utilisateur*\n\nNom: ${msg.from.first_name}\nID: \`${msg.from.id}\``, { parse_mode: 'Markdown' });
+    activeBot.onText(/\/id/, (msg) => {
+        activeBot.sendMessage(msg.chat.id, `👤 Votre ID : \`${msg.from.id}\``, { parse_mode: 'Markdown' });
     });
 
-    (driverBot || bot).onText(/^s*/livreur(@\w+)?\s*$/, (msg) => {
-        const webAppUrl = `http://localhost:3000/driver_app.html`;
-        bot.sendMessage(msg.chat.id, "📦 *Espace Livreur Lemontini*\n\nCliquez sur le bouton ci-dessous pour gérer vos livraisons.", {
+    activeBot.onText(/^\/livreur/, (msg) => {
+        const webAppUrl = `https://${process.env.VERCEL_URL || 'localhost:3000'}/driver_app.html`;
+        activeBot.sendMessage(msg.chat.id, "📦 *Espace Livreur Lemontini*", {
             parse_mode: 'Markdown',
             reply_markup: { inline_keyboard: [[{ text: "🚀 Ouvrir mon Espace", web_app: { url: webAppUrl } }]] }
         });
-    });
-    
-    bot.onText(/\/resume/, async (msg) => {
-        const today = new Date().toISOString().split('T')[0];
-        const { data: orders } = await supabase.from('orders').select('*').gte('created_at', today);
-        
-        const todayOrders = orders || [];
-        const nouveau = todayOrders.filter(o => o.status === 'nouveau').length;
-        const prepare = todayOrders.filter(o => o.status === 'confirme').length;
-        const livre = todayOrders.filter(o => o.status === 'livre').length;
-        const totalAmount = todayOrders.filter(o => o.status !== 'annule').reduce((acc, o) => acc + Number(o.total_amount), 0);
-        
-        let report = `📊 *RÉSUMÉ DU JOUR*\n\n🆕 Nouveau(x) : *${nouveau}*\n📦 En prépa : *${prepare}*\n✅ Livré(s) : *${livre}*\n\n💰 CA généré : *${Number(totalAmount).toLocaleString('fr-FR')} FCFA*`;
-        bot.sendMessage(msg.chat.id, report, {parse_mode: 'Markdown'});
     });
 }
 
@@ -306,6 +367,10 @@ app.post('/api/orders', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Le serveur e-commerce avec SUPABASE est DÉMARRÉ sur http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`Le serveur e-commerce avec SUPABASE est DÉMARRÉ sur http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;
