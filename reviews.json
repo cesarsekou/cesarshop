@@ -1,0 +1,37 @@
+[
+  {
+    "author": "gol",
+    "rating": 3,
+    "product": "Gloss Soin",
+    "comment": "superrrr",
+    "date": "2026-04-03T10:49:31.571Z"
+  },
+  {
+    "author": "Fifi",
+    "rating": 4,
+    "product": "Gloss Soin",
+    "comment": "C'est vraiment top !",
+    "date": "2026-04-03T10:47:09.370Z"
+  },
+  {
+    "author": "Koné A.",
+    "rating": 5,
+    "product": "Blush Crème",
+    "comment": "La pigmentation est incroyable sur ma peau noire ! Je recommande x1000.",
+    "date": "2026-04-03T10:45:50.154Z"
+  },
+  {
+    "author": "Mariam",
+    "rating": 4,
+    "product": "Gloss Soin",
+    "comment": "Très hydratant, mes lèvres ne sont plus sèches. Petite odeur de karité très agréable.",
+    "date": "2026-04-03T10:45:50.158Z"
+  },
+  {
+    "author": "Sery G.",
+    "rating": 5,
+    "product": "Coque Smartphone",
+    "comment": "Le jaune est trop beau, ça va parfaitement avec mon style Lemontini.",
+    "date": "2026-04-03T10:45:50.158Z"
+  }
+]

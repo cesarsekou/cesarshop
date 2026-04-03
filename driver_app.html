@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Espace Livreur Lemontini</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="driver-style.css">
+</head>
+<body>
+
+    <div id="loader">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10" stroke-opacity="0.2"/><path d="M12 2a10 10 0 0 1 10 10" transform="rotate(0)"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></path></svg>
+    </div>
+
+    <header>
+        <div class="driver-info">
+            <p>Espace Livreur</p>
+            <h1 id="driverName">Chargement...</h1>
+        </div>
+    </header>
+
+    <div class="tabs" id="tabContainer" style="display:none">
+        <div class="tab active" id="tabAvailable" onclick="switchTab('available')">DISPONIBLES</div>
+        <div class="tab" id="tabActive" onclick="switchTab('active')">MES COURSES</div>
+    </div>
+
+    <div class="content" id="orderList">
+        <!-- Orders injected here -->
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        let currentTab = 'available';
+        let driverData = null;
+        // Identification par initData ou ID de test (pour navigateur)
+        const tgUser = tg.initDataUnsafe.user;
+        const userId = tgUser ? tgUser.id.toString() : new URLSearchParams(window.location.search).get('id') || "5910421394";
+
+        async function init() {
+            try {
+                const res = await fetch(`/api/driver/auth?id=${userId}`);
+                const data = await res.json();
+                if (data.success) {
+                    driverData = data.driver;
+                    document.getElementById('driverName').textContent = driverData.name;
+                    document.getElementById('tabContainer').style.display = 'flex';
+                    loadOrders();
+                } else {
+                    document.getElementById('driverName').textContent = "Inconnu";
+                    document.getElementById('orderList').innerHTML = `<div class="empty">⚠️ Compte livreur non trouvé. Inscrivez-vous sur Telegram avec /inscription.</div>`;
+                }
+            } catch (e) {
+                document.getElementById('orderList').innerHTML = `<div class="empty">Erreur de connexion au serveur.</div>`;
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        async function loadOrders() {
+            try {
+                const res = await fetch(`/api/orders/all`); // On utilise une route existante ou nouvelle
+                const orders = await res.json();
+                renderOrders(orders);
+            } catch(e) {}
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tabAvailable').classList.toggle('active', tab === 'available');
+            document.getElementById('tabActive').classList.toggle('active', tab === 'active');
+            loadOrders();
+        }
+
+        function renderOrders(orders) {
+            const list = document.getElementById('orderList');
+            const filtered = orders.filter(o => {
+                const isClaimed = o.driver && o.driver.id === userId;
+                if (currentTab === 'available') {
+                    return !o.driver && (o.status === 'nouveau' || o.status === 'confirme');
+                } else {
+                    return isClaimed && o.status !== 'termine' && o.status !== 'annule';
+                }
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="empty">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 7h-9m3 3H5m16-6H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/></svg>
+                    <p>${currentTab === 'available' ? 'Aucune commande disponible' : 'Vous n\'avez aucune livraison en cours'}</p>
+                </div>`;
+                return;
+            }
+
+            list.innerHTML = filtered.reverse().map(o => `
+                <div class="order-card">
+                    <div class="order-header">
+                        <span class="order-id">${o.transactionId}</span>
+                        <span class="order-time">${new Date(o.createdAt).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}</span>
+                    </div>
+                    <div class="order-main">
+                        <div class="order-client">${o.fullName}</div>
+                        <div class="order-loc">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            ${o.city} — ${o.address}
+                        </div>
+                    </div>
+                    ${currentTab === 'available' ? `
+                        <button class="btn btn-primary" onclick="claimOrder('${o.transactionId}')">Prendre la livraison 🚚</button>
+                    ` : `
+                        <div class="order-actions">
+                            <button class="btn btn-outline" onclick="contactClient('${o.phone}')">WhatsApp</button>
+                            <button class="btn btn-outline" onclick="openMaps('${o.city}, ${o.address}')">Itinéraire</button>
+                            <button class="btn btn-success" style="grid-column: span 2" onclick="completeOrder('${o.transactionId}')">Marquer comme Livré ✅</button>
+                        </div>
+                    `}
+                </div>
+            `).join('');
+        }
+
+        async function claimOrder(id) {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            const res = await fetch('/api/driver/claim', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: id, driverId: userId })
+            });
+            if (res.ok) {
+                tg.showConfirm ? tg.showConfirm("Vous avez pris cette course. Elle est maintenant dans votre liste.", (confirmed) => {
+                   if (confirmed) switchTab('active');
+                }) : switchTab('active');
+            }
+        }
+
+        async function completeOrder(id) {
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            const res = await fetch('/api/driver/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: id, driverId: userId })
+            });
+            if (res.ok) {
+                tg.showAlert ? tg.showAlert("Super ! Livraison terminée. 🏁", () => {
+                    loadOrders();
+                }) : loadOrders();
+            }
+        }
+
+        function contactClient(phone) {
+            let p = phone.replace(/[^0-9]/g, '');
+            if (p.length === 10 && !p.startsWith('225')) p = '225' + p;
+            window.open(`https://wa.me/${p}`, '_blank');
+        }
+
+        function openMaps(addr) {
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lemontini Admin — Tableau de Bord</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+
+<!-- ──────────── LOGIN ──────────── -->
+<div id="loginGate">
+    <div class="login-card">
+        <div class="login-logo">Lemontini</div>
+        <div class="login-subtitle">Tableau de Bord Administrateur</div>
+        <label class="login-label" for="loginPass">Mot de passe</label>
+        <input type="password" id="loginPass" class="login-input" placeholder="••••••••" autocomplete="current-password">
+        <button class="login-btn" id="loginBtn">Se connecter</button>
+        <div class="login-error" id="loginError">❌ Mot de passe incorrect</div>
+    </div>
+</div>
+
+<!-- ──────────── APP ──────────── -->
+<div id="appAdmin">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">Lemontini</div>
+        <span class="sidebar-badge">Admin Panel</span>
+
+        <span class="nav-section-label">Menu</span>
+        <button class="nav-item active" id="nav-dashboard" onclick="showSection('dashboard')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>Dashboard</span>
+        </button>
+        <button class="nav-item" id="nav-orders" onclick="showSection('orders')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <span>Commandes</span>
+            <span class="nav-count" id="navOrderCount">0</span>
+        </button>
+
+        <div class="sidebar-footer">
+            <a href="/" class="logout-btn" style="color:var(--text-muted)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <span>Voir la boutique</span>
+            </a>
+            <button class="logout-btn" onclick="logout()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Déconnexion</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- ── DASHBOARD ── -->
+        <section class="section active" id="section-dashboard">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Bonjour Admin 👋</div>
+                    <div class="page-subtitle" id="lastRefreshDash">Voici un bref aperçu des informations importantes ci-dessous.</div>
+                </div>
+                <div class="refresh-bar">
+                    <div class="refresh-dot"></div>
+                    <span id="liveLabel">En direct</span>
+                    <button class="refresh-btn" id="refreshDashBtn" onclick="loadOrders(true)" title="Rafraîchir">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="dark-kpi-wrapper">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Commandes Total</div>
+                        <div class="kpi-value" id="kpiTotal">—</div>
+                        <div class="kpi-sub"><span class="trend-up">+12%</span> par rapport au mois dernier</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Chiffre d'Affaires</div>
+                        <div class="kpi-value" id="kpiCA">—</div>
+                        <div class="kpi-sub"><span class="trend-up">+8.5%</span> par rapport au mois dernier</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Paiement Wave</div>
+                        <div class="kpi-value" id="kpiWave">—</div>
+                        <div class="kpi-sub"><span class="trend-down">-2.0%</span> par rapport au mois dernier</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Commandes Livrées</div>
+                        <div class="kpi-value" id="kpiLivrees">—</div>
+                        <div class="kpi-sub" id="kpiLivreePct">— du total</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Layout (Chart + Recent Orders) -->
+            <div class="dashboard-layout">
+                <div class="chart-card">
+                    <h3>Statistiques de Vente</h3>
+                    <canvas id="salesChart" height="280"></canvas>
+                </div>
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="table-title">Dernières commandes</div>
+                        <button class="export-btn" onclick="showSection('orders')">
+                            Voir tout →
+                        </button>
+                    </div>
+                    <div id="recentOrdersBody">
+                        <div class="loading-spinner"><div class="spinner"></div>Chargement...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── COMMANDES ── -->
+        <section class="section" id="section-orders">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Commandes 🛒</div>
+                    <div class="page-subtitle" id="lastRefreshOrders">Chargement...</div>
+                </div>
+                <div class="table-actions">
+                    <div class="refresh-bar">
+                        <button class="refresh-btn" id="refreshOrdersBtn" onclick="loadOrders(true)" title="Rafraîchir">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        </button>
+                    </div>
+                    <button class="export-btn" onclick="exportCSV()">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Exporter CSV
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <div class="table-actions" style="flex-wrap:wrap;gap:8px;">
+                        <div class="search-filter">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="text" id="orderSearch" placeholder="Rechercher client, ref..." oninput="renderOrdersTable()">
+                        </div>
+                        <select class="filter-select" id="statusFilter" onchange="renderOrdersTable()">
+                            <option value="">Tous les statuts</option>
+                            <option value="nouveau">Nouveau</option>
+                            <option value="confirme">Confirmé</option>
+                            <option value="livre">Livré</option>
+                            <option value="annule">Annulé</option>
+                        </select>
+                        <select class="filter-select" id="payFilter" onchange="renderOrdersTable()">
+                            <option value="">Tous paiements</option>
+                            <option value="wave">Wave</option>
+                            <option value="orange">Orange Money</option>
+                            <option value="cash">Cash</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="ordersTableWrap">
+                    <div class="loading-spinner"><div class="spinner"></div>Chargement...</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ── DETAIL MODAL ── -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-box">
+        <div class="modal-top">
+            <h3 id="modalOrderId">Commande</h3>
+            <button class="modal-close-btn" onclick="closeModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+        <div class="modal-footer-btns">
+            <button class="modal-wa-btn" id="modalWaBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Contacter client
+            </button>
+            <select class="status-select-modal" id="modalStatusSelect" onchange="updateOrderStatus()"></select>
+        </div>
+    </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast-bar" id="toastBar"></div>
+
+<!-- ── CHART.JS ── -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // ── CONFIG ──
+    const AUTO_REFRESH_MS = 30000;
+
+    let allOrders = [];
+    let currentOrderId = null;
+    let autoRefreshTimer = null;
+
+    // ── HELPERS ──
+    const fmtCFA = (n) => new Intl.NumberFormat('fr-FR').format(n) + ' FCFA';
+    const fmtDate = (iso) => {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' })
+             + ' · ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    };
+
+    const payBadge = (type) => ({
+        wave:   '<span class="badge badge-wave">💙 Wave</span>',
+        orange: '<span class="badge badge-orange">🟠 Orange</span>',
+        cash:   '<span class="badge badge-cash">💵 Cash</span>',
+    }[type] || `<span class="badge">${type}</span>`);
+
+    const statusBadge = (s) => ({
+        nouveau:  '<span class="badge badge-nouveau">🆕 Nouveau</span>',
+        confirme: '<span class="badge badge-confirme">✅ Confirmé</span>',
+        livre:    '<span class="badge badge-livre">📦 Livré</span>',
+        annule:   '<span class="badge badge-annule">❌ Annulé</span>',
+    }[s] || `<span class="badge">${s}</span>`);
+
+    function showToast(msg) {
+        const t = document.getElementById('toastBar');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ── AUTH ──
+    function checkAuth() {
+        return sessionStorage.getItem('lm_admin_token') !== null;
+    }
+    function getAuthToken() {
+        return sessionStorage.getItem('lm_admin_token');
+    }
+    function logout() {
+        sessionStorage.removeItem('lm_admin_token');
+        location.reload();
+    }
+
+    document.getElementById('loginBtn').addEventListener('click', doLogin);
+    document.getElementById('loginPass').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') doLogin();
+    });
+
+    async function doLogin() {
+        const pass = document.getElementById('loginPass').value;
+        try {
+            const btn = document.getElementById('loginBtn');
+            const oldText = btn.textContent;
+            btn.textContent = 'Connexion...';
+            btn.disabled = true;
+
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pass })
+            });
+            const data = await res.json();
+            
+            btn.textContent = oldText;
+            btn.disabled = false;
+
+            if (data.success) {
+                sessionStorage.setItem('lm_admin_token', data.token);
+                document.getElementById('loginGate').style.display = 'none';
+                document.getElementById('appAdmin').style.display = 'block';
+                loadOrders();
+                startAutoRefresh();
+            } else {
+                throw new Error('Mot de passe incorrect');
+            }
+        } catch (e) {
+            document.getElementById('loginError').style.display = 'block';
+            document.getElementById('loginPass').classList.add('error');
+            setTimeout(() => {
+                document.getElementById('loginError').style.display = 'none';
+                document.getElementById('loginPass').classList.remove('error');
+            }, 2500);
+        }
+    }
+
+    // Auto-login if already authenticated
+    window.addEventListener('DOMContentLoaded', () => {
+        if (checkAuth()) {
+            document.getElementById('loginGate').style.display = 'none';
+            document.getElementById('appAdmin').style.display = 'block';
+            loadOrders();
+            startAutoRefresh();
+        }
+    });
+
+    // ── NAVIGATION ──
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById('section-' + id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('nav-' + id).classList.add('active');
+    }
+
+    // ── DATA LOADING ──
+    async function loadOrders(showSpinner = false) {
+        if (showSpinner) {
+            const btns = document.querySelectorAll('#refreshDashBtn, #refreshOrdersBtn');
+            btns.forEach(b => b.classList.add('spinning'));
+        }
+        try {
+            const res = await fetch('/api/orders', {
+                headers: { 'Authorization': 'Bearer ' + getAuthToken() }
+            });
+            if (res.status === 401) { logout(); return; }
+            if (!res.ok) throw new Error('API error');
+            allOrders = await res.json();
+            renderDashboard();
+            renderOrdersTable();
+            const now = 'Màj ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('lastRefreshDash').textContent = now;
+            document.getElementById('lastRefreshOrders').textContent = now;
+        } catch (err) {
+            console.error(err);
+            // Fallback: try local orders.json
+            showToast('⚠️ Impossible de charger les commandes. Serveur démarré ?');
+            renderEmptyState();
+        } finally {
+            document.querySelectorAll('#refreshDashBtn, #refreshOrdersBtn').forEach(b => b.classList.remove('spinning'));
+        }
+    }
+
+    function startAutoRefresh() {
+        autoRefreshTimer = setInterval(() => loadOrders(), AUTO_REFRESH_MS);
+    }
+
+    // ── CHART LOGIC ──
+    let salesChartInstance = null;
+    function renderSalesChart() {
+        const ctx = document.getElementById('salesChart');
+        if (!ctx) return;
+
+        // Group by day for the last 7 days
+        const last7Days = [];
+        const labels = [];
+        let now = new Date();
+        for (let i=6; i>=0; i--) {
+            let d = new Date(now);
+            d.setDate(d.getDate() - i);
+            let dateString = d.toISOString().split('T')[0];
+            last7Days.push(dateString);
+            labels.push(d.toLocaleDateString('fr-FR', { weekday: 'short' }));
+        }
+
+        const dataPoints = last7Days.map(dateStr => {
+            return allOrders
+                .filter(o => o.createdAt && o.createdAt.startsWith(dateStr) && o.status !== 'annule')
+                .reduce((sum, o) => sum + Number(o.totalAmount), 0);
+        });
+
+        if (salesChartInstance) {
+            salesChartInstance.destroy();
+        }
+
+        salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ventes (FCFA)',
+                    data: dataPoints,
+                    borderColor: '#22c55e', // Neon green from Redacted
+                    backgroundColor: 'rgba(34,197,94,0.05)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#22c55e',
+                    pointBorderWidth: 2,
+                    pointRadius: 0, // Cleaner look
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: '#111',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return new Intl.NumberFormat('fr-FR').format(context.parsed.y) + ' FCFA';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        position: 'right', // Modern look
+                        ticks: { 
+                            stepSize: 10000, 
+                            color: '#888',
+                            font: { family: 'Inter', size: 10 },
+                            callback: function(value) { return value / 1000 + 'k'; }
+                        },
+                        grid: { color: 'rgba(0,0,0,0.03)', drawBorder: false }
+                    },
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { 
+                            color: '#888',
+                            font: { family: 'Inter', size: 10 }
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            }
+        });
+    }
+
+    // ── DASHBOARD ──
+    function renderDashboard() {
+        const total = allOrders.length;
+        const nouveaux = allOrders.filter(o => o.status === 'nouveau').length;
+        const livrees = allOrders.filter(o => o.status === 'livre').length;
+        const waveOrders = allOrders.filter(o => o.paymentType === 'wave').length;
+        const ca = allOrders.reduce((sum,o) => sum + (Number(o.totalAmount) - 2000), 0);
+
+        document.getElementById('kpiTotal').textContent = total;
+        document.getElementById('kpiNouveaux').textContent = `${nouveaux} nouveau${nouveaux>1?'x':''}`;
+        document.getElementById('kpiCA').textContent = total > 0 ? fmtCFA(ca) : '0 FCFA';
+        document.getElementById('kpiWave').textContent = waveOrders;
+        document.getElementById('kpiWavePct').textContent = total > 0 ? Math.round(waveOrders/total*100) + '% des commandes' : '—';
+        document.getElementById('kpiLivrees').textContent = livrees;
+        document.getElementById('kpiLivreePct').textContent = total > 0 ? Math.round(livrees/total*100) + '% du total' : '—';
+
+        document.getElementById('navOrderCount').textContent = nouveaux > 0 ? nouveaux : total;
+
+        // Render Chart
+        renderSalesChart();
+
+        // Recent table (last 6)
+        const recent = [...allOrders].reverse().slice(0, 6);
+        if (recent.length === 0) {
+            document.getElementById('recentOrdersBody').innerHTML = `
+                <div class="empty-table">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/></svg>
+                    <p>Aucune commande</p>
+                    <span>Les commandes apparaîtront ici dès la première vente.</span>
+                </div>`;
+            return;
+        }
+        document.getElementById('recentOrdersBody').innerHTML = `
+            <table>
+                <thead><tr>
+                    <th>Ref</th><th>Client</th><th>Livreur</th><th>Ville</th><th>Montant</th><th>Statut</th>
+                </tr></thead>
+                <tbody>${recent.map(o => renderOrderRow(o)).join('')}</tbody>
+            </table>`;
+    }
+
+    // ── ORDERS TABLE ──
+    function renderOrdersTable() {
+        const q = (document.getElementById('orderSearch')?.value || '').toLowerCase();
+        const sf = document.getElementById('statusFilter')?.value || '';
+        const pf = document.getElementById('payFilter')?.value || '';
+
+        let filtered = [...allOrders].reverse().filter(o => {
+            const matchQ = !q || o.transactionId?.toLowerCase().includes(q)
+                        || o.fullName?.toLowerCase().includes(q)
+                        || o.phone?.includes(q)
+                        || o.city?.toLowerCase().includes(q);
+            const matchS = !sf || o.status === sf;
+            const matchP = !pf || o.paymentType === pf;
+            return matchQ && matchS && matchP;
+        });
+
+        const wrap = document.getElementById('ordersTableWrap');
+        if (filtered.length === 0) {
+            wrap.innerHTML = `<div class="empty-table">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <p>Aucun résultat</p>
+                <span>Essayez d'autres filtres</span>
+            </div>`;
+            return;
+        }
+        wrap.innerHTML = `<table>
+            <thead><tr>
+                <th>Ref</th><th>Client</th><th>Livreur</th><th>Ville</th><th>Montant</th><th>Paiement</th><th>Statut</th><th>Date</th><th>Actions</th>
+            </tr></thead>
+            <tbody>${filtered.map(o => renderOrderRowFull(o)).join('')}</tbody>
+        </table>`;
+    }
+
+    function renderOrderRow(o) {
+        return `<tr onclick="openOrderDetail('${o.transactionId}')" style="cursor:pointer">
+            <td><span class="order-id">${o.transactionId}</span></td>
+            <td><div class="client-name">${o.fullName}</div><div class="client-phone">${o.phone}</div></td>
+            <td><div style="font-size:11px; font-weight:700; color:var(--success)">${o.driver ? '🛵 ' + o.driver.name : '—'}</div></td>
+            <td><span class="city-badge">${o.city}</span></td>
+            <td class="amount-cell">${fmtCFA(o.totalAmount)}</td>
+            <td>${payBadge(o.paymentType)}</td>
+            <td>${statusBadge(o.status)}</td>
+        </tr>`;
+    }
+
+    function renderOrderRowFull(o) {
+        return `<tr>
+            <td><span class="order-id">${o.transactionId}</span></td>
+            <td><div class="client-name">${o.fullName}</div><div class="client-phone">${o.phone}</div></td>
+            <td><div style="font-size:11px; font-weight:700; color:var(--success)">${o.driver ? '🛵 ' + o.driver.name : '—'}</div></td>
+            <td><span class="city-badge">${o.city}</span></td>
+            <td class="amount-cell">${fmtCFA(o.totalAmount)}</td>
+            <td>${payBadge(o.paymentType)}</td>
+            <td>${statusBadge(o.status)}</td>
+            <td style="font-size:11.5px;color:var(--text-muted)">${fmtDate(o.createdAt)}</td>
+            <td>
+                <div class="action-btns">
+                    <button class="action-btn action-btn-wa" title="WhatsApp" onclick="contactWhatsApp('${o.transactionId}')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    </button>
+                    <button class="action-btn action-btn-status" title="Détail" onclick="openOrderDetail('${o.transactionId}')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }
+
+    function renderEmptyState() {
+        const html = `<div class="empty-table">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/></svg>
+            <p>Aucune commande</p>
+            <span>Démarrez le serveur avec <code>node server.js</code></span>
+        </div>`;
+        document.getElementById('recentOrdersBody').innerHTML = html;
+        document.getElementById('ordersTableWrap').innerHTML = html;
+    }
+
+    // ── ORDER DETAIL MODAL ──
+    function openOrderDetail(transactionId) {
+        const o = allOrders.find(x => x.transactionId === transactionId);
+        if (!o) return;
+        currentOrderId = transactionId;
+
+        document.getElementById('modalOrderId').textContent = '🛍️ ' + o.transactionId;
+
+        const itemsHtml = (o.items || []).map(i => `
+            <div class="modal-item">
+                <span class="modal-item-name">${i.qty}× ${i.name}</span>
+                <span class="modal-item-price">${fmtCFA(i.qty * i.price)}</span>
+            </div>`).join('');
+
+        document.getElementById('modalBody').innerHTML = `
+            <div class="detail-row"><span class="key">Client</span><span class="val">${o.fullName}</span></div>
+            <div class="detail-row"><span class="key">WhatsApp</span><span class="val">${o.phone}</span></div>
+            <div class="detail-row"><span class="key">Ville</span><span class="val">${o.city}</span></div>
+            <div class="detail-row"><span class="key">Adresse</span><span class="val">${o.address}</span></div>
+            <div class="detail-row"><span class="key">Livreur</span><span class="val" style="color:var(--success)">${o.driver ? '🛵 ' + o.driver.name + ' (' + o.driver.phone + ')' : 'Non assigné'}</span></div>
+            <div class="detail-row"><span class="key">Paiement</span><span class="val">${payBadge(o.paymentType)}</span></div>
+            <div class="detail-row"><span class="key">Date</span><span class="val">${fmtDate(o.createdAt)}</span></div>
+            <div class="detail-row"><span class="key">Total</span><span class="val" style="color:var(--accent);font-size:16px">${fmtCFA(o.totalAmount)}</span></div>
+            <div class="modal-items" style="margin-top:16px">
+                <div style="font-size:11px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Articles commandés</div>
+                ${itemsHtml || '<div class="modal-item"><span class="modal-item-name">—</span></div>'}
+            </div>`;
+
+        // Status select
+        const sel = document.getElementById('modalStatusSelect');
+        sel.innerHTML = ['nouveau','confirme','livre','annule'].map(s =>
+            `<option value="${s}" ${o.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`
+        ).join('');
+
+        // WA button
+        document.getElementById('modalWaBtn').onclick = () => contactWhatsApp(o.transactionId);
+
+        document.getElementById('detailModal').classList.add('open');
+    }
+
+    function closeModal() {
+        document.getElementById('detailModal').classList.remove('open');
+        currentOrderId = null;
+    }
+
+    document.getElementById('detailModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('detailModal')) closeModal();
+    });
+
+    async function updateOrderStatus() {
+        if (!currentOrderId) return;
+        const newStatus = document.getElementById('modalStatusSelect').value;
+        try {
+            const res = await fetch(`/api/orders/${currentOrderId}/status`, {
+                method: 'PATCH',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getAuthToken()
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (res.status === 401) { logout(); return; }
+            if (res.ok) {
+                const o = allOrders.find(x => x.transactionId === currentOrderId);
+                if (o) o.status = newStatus;
+                renderDashboard();
+                renderOrdersTable();
+                showToast('✅ Statut mis à jour : ' + newStatus);
+            }
+        } catch {
+            showToast('❌ Erreur de mise à jour');
+        }
+    }
+
+    // ── WA CONTACT ──
+    function contactWhatsApp(transactionId) {
+        const o = allOrders.find(x => x.transactionId === transactionId);
+        if (!o) return;
+
+        const cleaned = o.phone.replace(/\s/g, '').replace(/^0/, '225');
+        
+        let msg = `Bonjour ${o.fullName} 👋,\n\n`;
+
+        if (o.status === 'nouveau') {
+            msg += `Votre commande n°${o.transactionId} chez *Lemontini* a bien été reçue. Nous allons vite la traiter ! 🌿`;
+        } else if (o.status === 'confirme') {
+            msg += `✅ Votre commande n°${o.transactionId} est *en préparation*. Nous vous recontactons très vite pour l'expédition. 🌿`;
+        } else if (o.status === 'livre') {
+            msg += `🚚 Votre colis n°${o.transactionId} est *en cours de livraison* !\n\n`;
+            if (o.driver && o.driver.name) {
+                msg += `🏃‍♂️ Votre livreur est *${o.driver.name}*.\n📞 Joignable au : *${o.driver.phone || ''}*\n\n`;
+            }
+            msg += `Suivez l'avancée ici : http://localhost:3000/track.html?id=${o.transactionId}`;
+        } else if (o.status === 'termine') {
+            msg += `🏁 Votre commande n°${o.transactionId} a été *livrée* avec succès. Merci de votre confiance ! 💖`;
+        } else {
+            msg += `Votre commande n°${o.transactionId} chez *Lemontini* a été mise à jour. Statut: ${o.status}`;
+        }
+
+        window.open(`https://wa.me/${cleaned}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // ── EXPORT CSV ──
+    function exportCSV() {
+        if (allOrders.length === 0) { showToast('Aucune commande à exporter'); return; }
+        const headers = ['Ref','Client','Téléphone','Ville','Adresse','Instructions','Paiement','Montant','Statut','Date'];
+        const rows = allOrders.map(o => [
+            o.transactionId, o.fullName, o.phone, o.city, o.address,
+            o.instructions, o.paymentType, o.totalAmount, o.status, o.createdAt
+        ]);
+        const csv = [headers, ...rows].map(r => r.map(v => `"${v||''}"`).join(',')).join('\n');
+        const blob = new Blob(['\ufeff'+csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lemontini-commandes-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('📥 Export CSV téléchargé');
+    }
+</script>
+</body>
+</html>

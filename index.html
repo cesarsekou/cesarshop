@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Lemontini | Cosmétiques Abidjan — Summer</title>
+    <meta name="description" content="Cosmétiques premium pour peaux noires & métissées. Blush, Lip tint, Coffrets Abidjan. Livraison 24h, paiement Wave & cash à la livraison.">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lemontini.ci/">
+    <meta property="og:title" content="Lemontini | Cosmétiques Abidjan — Éclat Tropical">
+    <meta property="og:description" content="Cosmétiques pour peaux noires & métissées. Livraison à Abidjan 🛵 Paiement Wave ou cash à la livraison.">
+    <meta property="og:image" content="/assets/og-cover.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="theme-color" content="#1a1215">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ═══ TOAST CONTAINER ═══ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ═══ SCROLL TO TOP ═══ -->
+    <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Retour en haut">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+    </button>
+
+    <!-- ═══ BOTTOM CTA BAR (MOBILE) ═══ -->
+    <div class="bottom-cta-bar" id="bottomCtaBar">
+        <button class="bottom-cta-cart-btn" onclick="document.getElementById('cartToggle').click()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            Voir le panier
+        </button>
+        <a href="https://wa.me/2250700000000" class="bottom-cta-wa-btn" aria-label="WhatsApp" target="_blank" rel="noopener noreferrer">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </a>
+    </div>
+
+
+
+    <!-- ═══ AI CHATBOT AMINATA ═══ -->
+    <div class="chatbot-container" id="chatbotContainer">
+        <!-- Toggle Button -->
+        <button class="chat-toggle-btn" id="chatToggle" aria-label="Ouvrir le chat avec Aminata">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span class="chat-notif-dot" id="chatNotifDot">1</span>
+        </button>
+
+        <!-- Chat Window -->
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="chat-avatar">✨</div>
+                    <div>
+                        <div class="chat-title">Aminata</div>
+                        <div class="chat-subtitle"><span class="online-dot"></span>Conseillère beauté IA · 24/7</div>
+                    </div>
+                </div>
+                <button class="chat-close" id="chatClose" aria-label="Fermer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="msg-bubble">Bonjour ! Je suis <strong>Aminata</strong>, votre conseillère beauté IA 💕 Comment puis-je vous aider aujourd'hui ?</div>
+                </div>
+            </div>
+            <!-- Quick reply chips -->
+            <div class="quick-replies" id="quickReplies">
+                <button class="quick-reply-chip" data-msg="Quels produits avez-vous ?">Nos produits</button>
+                <button class="quick-reply-chip" data-msg="Comment payer avec Wave ?">Paiement Wave</button>
+                <button class="quick-reply-chip" data-msg="Délais de livraison Abidjan ?">Livraison</button>
+                <button class="quick-reply-chip" data-msg="Conseille-moi un produit pour ma peau">Conseil beauté</button>
+            </div>
+            <div class="chat-input-area">
+                <button class="chat-mic-btn" id="chatMic" aria-label="Note vocale">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+                </button>
+                <input type="text" id="chatInput" placeholder="Posez votre question..." autocomplete="off">
+                <button class="chat-send-btn" id="chatSend" aria-label="Envoyer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         APP CONTAINER
+    ════════════════════════════════════ -->
+    <div class="app-container" id="appContainer">
+        <div class="status-bar-spacer"></div>
+
+        <!-- ─── HERO PROMO BANNER ─── -->
+        <section class="hero-banner" id="heroBanner" role="banner" aria-label="Promotion en cours">
+            <span class="hero-badge">✨ Nouveauté</span>
+            <p class="hero-text">Formulés pour <strong>peaux tropicales</strong> — Livraison Abidjan <strong>2 000 FCFA</strong></p>
+            <span class="hero-arrow">Voir →</span>
+        </section>
+
+        <!-- ─── HEADER ─── -->
+        <header class="header" id="mainHeader">
+            <div class="brand">
+                <h1 class="brand-title">Lemontini</h1>
+                <h2 class="brand-subtitle" id="brandSubtitle">Éclat Tropical</h2>
+            </div>
+
+            <div class="action-bar">
+                <div class="icon-group">
+                    <a href="#" id="headerTrackBtn" class="icon-btn" aria-label="Suivre ma commande" title="Suivi de commande" style="display:none; color:var(--rose);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    </a>
+                    <button class="icon-btn" id="searchToggle" aria-label="Rechercher" aria-expanded="false">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </button>
+                    <button class="icon-btn" id="filterToggle" aria-label="Filtrer" aria-expanded="false">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+                    </button>
+                </div>
+                <button class="cart-btn" id="cartToggle" aria-label="Ouvrir le panier">
+                    <span class="cart-text">Panier</span>
+                    <span class="cart-badge" id="cartBadge">0</span>
+                </button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-bar" id="searchBar" role="search">
+                <svg class="search-bar-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="searchInput" placeholder="Rechercher (ex: karité, blush...)" autocomplete="off" aria-label="Rechercher un produit">
+                <button class="search-clear" id="searchClear" aria-label="Effacer la recherche">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <!-- Filter Chips -->
+            <nav class="filter-chips" id="filterChips" aria-label="Filtrer par catégorie">
+                <button class="filter-chip active" data-category="all">Tout</button>
+                <button class="filter-chip" data-category="face">Visage & Teint</button>
+                <button class="filter-chip" data-category="lips">Lèvres</button>
+                <button class="filter-chip" data-category="kit">Coffrets Cadeaux</button>
+                <button class="filter-chip" data-category="accessory">Accessoires</button>
+            </nav>
+        </header>
+
+        <!-- ─── PRODUCT GRID ─── -->
+        <main class="product-grid" id="productGrid" aria-label="Catalogue produits">
+            <!-- Rendered by JS -->
+        </main>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display:none;" role="status">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#c0c8cc" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <p>Aucun produit trouvé</p>
+            <span style="font-size:13px;">Essayez un autre terme</span>
+        </div>
+
+        <!-- ─── REVIEWS / TESTIMONIALS ─── -->
+        <section class="reviews-section" aria-label="Avis clients">
+            <div class="reviews-header">
+                <h3 class="reviews-title">Elles adorent Lemontini 💕</h3>
+                <div class="reviews-avg">
+                    <span class="reviews-avg-score">4.8</span>
+                    <span class="reviews-avg-stars">★★★★★</span>
+                    <span class="reviews-avg-count">(498 avis)</span>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:center; margin-bottom:20px;">
+                <button class="add-review-btn" id="addReviewBtn">✨ Laisser un avis</button>
+            </div>
+            <div class="reviews-scroll" id="reviewsScroll">
+                <article class="review-card">
+                    <div class="review-top">
+                        <div class="review-avatar" style="background:#fde8f2; color:#d4447c;">K</div>
+                        <div>
+                            <div class="review-name">Kadidiatou T.</div>
+                            <div class="review-location">Abidjan, Cocody</div>
+                        </div>
+                    </div>
+                    <div class="review-stars">★★★★★</div>
+                    <p class="review-text">Le blush est incroyable ! Il tient toute la journée même avec la chaleur de Babi. Je recommande à 100%.</p>
+                    <span class="review-product-tag">Blush Crème</span>
+                </article>
+                <article class="review-card">
+                    <div class="review-top">
+                        <div class="review-avatar" style="background:#fff3dc; color:#f5a623;">M</div>
+                        <div>
+                            <div class="review-name">Marie-Ange B.</div>
+                            <div class="review-location">Abidjan, Marcory</div>
+                        </div>
+                    </div>
+                    <div class="review-stars">★★★★★</div>
+                    <p class="review-text">Service client au top. Commandé le matin, livré l'après-midi. Le gloss ne colle pas du tout.</p>
+                    <span class="review-product-tag">Gloss Karité</span>
+                </article>
+                <article class="review-card">
+                    <div class="review-top">
+                        <div class="review-avatar" style="background:#e0f2fe; color:#0369a1;">S</div>
+                        <div>
+                            <div class="review-name">Sarah Y.</div>
+                            <div class="review-location">Yamoussoukro</div>
+                        </div>
+                    </div>
+                    <div class="review-stars">★★★★☆</div>
+                    <p class="review-text">La trousse est super mignonne et pratique pour mes week-ends. Très belle qualité.</p>
+                    <span class="review-product-tag">Trousse Éclat</span>
+                </article>
+            </div>
+        </section>
+
+        <!-- ─── TRUST SECTION ─── -->
+        <section class="trust-section" aria-label="Nos engagements">
+            <div class="trust-item">
+                <span class="trust-icon">🛵</span>
+                <span class="trust-label">Livraison<br>24–48h Abidjan</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-icon">📱</span>
+                <span class="trust-label">Paiement<br>Wave & Cash</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-icon">💬</span>
+                <span class="trust-label">Support<br>WhatsApp 24/7</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-icon">↩️</span>
+                <span class="trust-label">Retours<br>sous 7 jours</span>
+            </div>
+        </section>
+
+        <!-- ─── FOOTER ─── -->
+        <footer class="site-footer" role="contentinfo">
+            <div class="footer-brand">
+                <span class="footer-logo">Lemontini</span>
+                <p class="footer-tagline">Éclat Tropical — Cosmétiques formulés pour les peaux noires & métissées</p>
+            </div>
+            <div class="footer-contact">
+                <a href="https://wa.me/2250700000000" class="footer-whatsapp-link" target="_blank" rel="noopener noreferrer">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    07 00 00 00 00 (WhatsApp)
+                </a>
+                <p class="footer-hours">📍 Abidjan, Côte d'Ivoire · Lun–Sam 8h–20h</p>
+            </div>
+            <div class="footer-links">
+                <span>Livraison sous 24–48h</span>
+                <span>•</span>
+                <span>Retours sous 7 jours</span>
+                <span>•</span>
+                <span>Paiement sécurisé</span>
+            </div>
+            <p class="footer-copy">© 2025 Lemontini CI — Tous droits réservés</p>
+        </footer>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         PRODUCT DETAIL MODAL
+    ════════════════════════════════════ -->
+    <div class="modal-overlay" id="productModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose" aria-label="Fermer">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div class="modal-image-wrapper">
+                <img id="modalImage" src="" alt="">
+                <button class="modal-fav-btn" id="modalFav" aria-label="Ajouter aux favoris">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <span class="modal-category" id="modalCategory"></span>
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <p class="modal-desc" id="modalDesc"></p>
+                <div class="modal-details">
+                    <div class="modal-detail-item">
+                        <span class="detail-label">Quantité</span>
+                        <span class="detail-value" id="modalSize"></span>
+                    </div>
+                    <div class="modal-detail-item">
+                        <span class="detail-label">Variante</span>
+                        <span class="detail-value" id="modalShade"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="modal-price" id="modalPrice"></div>
+                    <div class="quantity-control">
+                        <button class="qty-btn" id="qtyMinus" aria-label="Diminuer la quantité">−</button>
+                        <span class="qty-value" id="qtyValue">1</span>
+                        <button class="qty-btn" id="qtyPlus" aria-label="Augmenter la quantité">+</button>
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
+                    <button class="add-to-cart-btn" id="buyNowBtn" style="background:var(--rose); padding:16px;">
+                        ⚡ Acheter maintenant
+                    </button>
+                    <button class="add-to-cart-btn" id="addToCartBtn" style="background:var(--surface); color:var(--on-surface); border:2px solid var(--outline); padding:14px;">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                        Ajouter au panier
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         CART DRAWER
+    ════════════════════════════════════ -->
+    <div class="drawer-overlay" id="cartOverlay"></div>
+    <aside class="cart-drawer" id="cartDrawer" role="complementary" aria-label="Panier">
+        <div class="drawer-header">
+            <h2 class="drawer-title">Mon Panier 🛍️</h2>
+            <button class="drawer-close" id="cartClose" aria-label="Fermer le panier">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="drawer-body" id="cartItems"></div>
+        <div class="cart-empty-state" id="cartEmpty">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#d4a8b8" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <p>Votre panier est vide</p>
+            <span>Laissez-vous tenter par nos produits !</span>
+        </div>
+        <div class="drawer-footer" id="cartFooter" style="display:none;">
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Sous-total</span>
+                    <span id="cartSubtotal">0 FCFA</span>
+                </div>
+                <div class="summary-row">
+                    <span>Livraison Abidjan</span>
+                    <span id="cartShipping">2 000 FCFA</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total (livr. incluse)</span>
+                    <span id="cartTotal">0 FCFA</span>
+                </div>
+            </div>
+            <button class="checkout-btn" id="checkoutBtn">
+                Passer commande
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════
+         CHECKOUT MODAL
+    ════════════════════════════════════ -->
+    <div class="modal-overlay" id="checkoutModal" role="dialog" aria-modal="true" aria-label="Passer commande">
+        <div class="modal-content checkout-content">
+            <button class="modal-close" id="checkoutClose" aria-label="Fermer le checkout">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+
+            <!-- Step Indicator -->
+            <div class="checkout-steps" id="checkoutSteps" aria-label="Étapes de commande">
+                <div class="step active" data-step="1">
+                    <span class="step-num">1</span>
+                    <span class="step-label">Contacts</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="2">
+                    <span class="step-num">2</span>
+                    <span class="step-label">Livraison</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="3">
+                    <span class="step-num">3</span>
+                    <span class="step-label">Paiement</span>
+                </div>
+            </div>
+
+            <form class="checkout-form" id="checkoutForm" novalidate>
+
+                <!-- ── Step 1: Contact ── -->
+                <div class="checkout-step-panel active" data-panel="1">
+                    <h3 class="checkout-section-title">Vos informations</h3>
+                    <div class="form-group">
+                        <label for="fullName">Nom & Prénoms *</label>
+                        <input type="text" id="fullName" required placeholder="Marie-Ange Kouamé" autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Numéro WhatsApp *</label>
+                        <input type="tel" id="phone" required placeholder="07 00 00 00 00" autocomplete="tel">
+                    </div>
+                    <div class="form-nav">
+                        <button type="button" class="checkout-next-btn" data-next="2">
+                            Continuer
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="display:inline;vertical-align:-2px;margin-left:4px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── Step 2: Livraison ── -->
+                <div class="checkout-step-panel" data-panel="2">
+                    <h3 class="checkout-section-title">Lieu de livraison</h3>
+                    <div class="form-group">
+                        <label for="city">Commune / Quartier <span class="required">*</span></label>
+                        <select id="city" class="form-control" required style="appearance:none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22black%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/></svg>'); background-repeat: no-repeat; background-position-x: 96%; background-position-y: 50%;">
+                            <option value="">Sélectionnez votre commune...</option>
+                            <option value="Abobo">Abobo</option>
+                            <option value="Adjamé">Adjamé</option>
+                            <option value="Anyama">Anyama</option>
+                            <option value="Attécoubé">Attécoubé</option>
+                            <option value="Bingerville">Bingerville</option>
+                            <option value="Cocody">Cocody</option>
+                            <option value="Koumassi">Koumassi</option>
+                            <option value="Marcory">Marcory</option>
+                            <option value="Plateau">Plateau</option>
+                            <option value="Port-Bouët">Port-Bouët</option>
+                            <option value="Treichville">Treichville</option>
+                            <option value="Yopougon">Yopougon</option>
+                            <option value="Autre">Autre ville (Hors Abidjan)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="cityCustomGroup" style="display:none;">
+                        <label for="cityCustom">Nom de la ville *</label>
+                        <input type="text" id="cityCustom" placeholder="Ex: Bobo-Dioulasso, Yamoussoukro...">
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Quartier, Repère & Précision *</label>
+                        <input type="text" id="address" required placeholder="Ex : Palmeraie rond-point Faya, 4ème étage...">
+                    </div>
+                    <div class="form-group">
+                        <label for="instructions">Préférence de livraison</label>
+                        <select id="instructions">
+                            <option value="M'appeler avant de venir">M'appeler avant de venir</option>
+                            <option value="Déposer à l'accueil / vigile">Déposer à l'accueil / vigile</option>
+                            <option value="Aucune instruction particulière">Aucune instruction particulière</option>
+                        </select>
+                    </div>
+                    <div class="form-nav">
+                        <button type="button" class="checkout-back-btn" data-prev="1">← Retour</button>
+                        <button type="button" class="checkout-next-btn" data-next="3">
+                            Continuer
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="display:inline;vertical-align:-2px;margin-left:4px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── Step 3: Paiement ── -->
+                <div class="checkout-step-panel" data-panel="3">
+                    <h3 class="checkout-section-title">Méthode de paiement</h3>
+
+                    <!-- Mini récap commande -->
+                    <div class="order-summary-mini" id="orderSummaryMini"></div>
+
+                    <div class="payment-methods">
+                        <!-- Wave -->
+                        <label class="payment-option">
+                            <input type="radio" name="paymentType" value="wave" checked>
+                            <div class="payment-box">
+                                <div class="payment-icon-wrap payment-icon-wave">💙</div>
+                                <div class="payment-box-text">
+                                    <div class="payment-box-title">Wave Mobile Money</div>
+                                    <div class="payment-box-sub">Paiement sécurisé via l'app Wave</div>
+                                </div>
+                                <div class="payment-check"></div>
+                            </div>
+                        </label>
+
+                        <!-- Orange Money -->
+                        <label class="payment-option">
+                            <input type="radio" name="paymentType" value="orange">
+                            <div class="payment-box">
+                                <div class="payment-icon-wrap" style="background:#fff3e0;">🟠</div>
+                                <div class="payment-box-text">
+                                    <div class="payment-box-title">Orange Money</div>
+                                    <div class="payment-box-sub">Paiement via Orange Money CI</div>
+                                </div>
+                                <div class="payment-check"></div>
+                            </div>
+                        </label>
+
+                        <!-- Cash -->
+                        <label class="payment-option">
+                            <input type="radio" name="paymentType" value="cash">
+                            <div class="payment-box">
+                                <div class="payment-icon-wrap payment-icon-cash">💵</div>
+                                <div class="payment-box-text">
+                                    <div class="payment-box-title">Paiement à la livraison</div>
+                                    <div class="payment-box-sub">Espèces — Zone Abidjan uniquement</div>
+                                </div>
+                                <div class="payment-check"></div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="mobile-money-info" id="momoInfo">
+                        Vous serez redirigé vers l'application Wave pour valider votre paiement en toute sécurité.
+                    </div>
+
+                    <div class="form-nav">
+                        <button type="button" class="checkout-back-btn" data-prev="2">← Retour</button>
+                        <button type="submit" class="checkout-submit-btn" id="submitOrder">
+                            Valider (<span id="payTotal"></span>)
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Success State -->
+            <div class="checkout-success" id="checkoutSuccess" style="display:none;" role="status">
+                <div class="success-icon">
+                    <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <h2>Commande enregistrée ! 🎉</h2>
+                <p>Merci pour votre achat. Notre équipe vous contactera sur <strong>WhatsApp</strong> pour confirmer la livraison à votre adresse.</p>
+                <p class="order-number">Commande <strong id="orderNumber"></strong></p>
+                <div class="form-nav" style="justify-content:center; flex-direction:column; gap:10px;">
+                    <a id="trackOrderBtn" href="#" class="checkout-next-btn" style="flex:0 0 auto;padding:14px 28px;text-align:center;text-decoration:none;background:var(--gradient-rose);color:white;display:inline-block">
+                        Suivre ma commande en direct
+                    </a>
+                    <button class="checkout-back-btn" id="continueShopping" style="flex:0 0 auto;padding:12px 28px;">
+                        Retour au catalogue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ═══════════════════════════════════
+         REVIEW MODAL
+    ════════════════════════════════════ -->
+    <div class="modal-overlay" id="reviewModal" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
+        <div class="modal-content review-modal-content">
+            <button class="modal-close" id="reviewModalClose" aria-label="Fermer">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div class="modal-body">
+                <h2 class="modal-title" id="reviewModalTitle">Votre avis nous est précieux 💕</h2>
+                <p class="modal-desc">Partagez votre expérience avec la communauté Lemontini.</p>
+                
+                <form id="reviewForm" class="review-form">
+                    <div class="form-group" style="text-align:center;">
+                        <label>Votre note</label>
+                        <div class="star-rating-input" id="starRatingInput">
+                            <span data-rating="1">★</span>
+                            <span data-rating="2">★</span>
+                            <span data-rating="3">★</span>
+                            <span data-rating="4">★</span>
+                            <span data-rating="5">★</span>
+                        </div>
+                        <input type="hidden" id="selectedRating" value="5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reviewAuthor">Nom ou Pseudo *</label>
+                        <input type="text" id="reviewAuthor" required placeholder="Ex: Mariam K.">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reviewProduct">Produit utilisé</label>
+                        <select id="reviewProduct">
+                            <option value="Produit Lemontini">Sélectionnez un produit...</option>
+                            <option value="Blush Crème">Blush Crème</option>
+                            <option value="Gloss Soin">Gloss Soin</option>
+                            <option value="Trousse Éclat">Trousse Éclat</option>
+                            <option value="Coque Smartphone">Coque Smartphone</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reviewComment">Votre commentaire *</label>
+                        <textarea id="reviewComment" rows="4" required placeholder="Dites-nous ce que vous avez aimé..."></textarea>
+                    </div>
+
+                    <button type="submit" class="add-to-cart-btn" style="background:var(--gradient-rose); margin-top:10px;">
+                        Publier mon avis
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/2250700000000" class="floating-wa" target="_blank" aria-label="Contactez-nous sur WhatsApp">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    </a>
+
+    <style>
+    .floating-wa {
+        position: fixed;
+        bottom: 24px;
+        right: 20px;
+        width: 55px;
+        height: 55px;
+        background-color: #25d366;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(37,211,102,0.4);
+        z-index: 999;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .floating-wa:hover {
+        transform: scale(1.1);
+        color: white;
+    }
+    @media (max-width: 768px) {
+        .floating-wa {
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+        }
+        .floating-wa svg {
+            width: 24px;
+            height: 24px;
+        }
+    }
+    </style>
+
+    <script src="script.js"></script>
+</body>
+</html>

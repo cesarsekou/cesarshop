@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Suivi de Commande | Lemontini</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --surface: #ffffff;
+            --surface-dim: #fef6f7;
+            --on-surface: #1a1215;
+            --on-surface-variant: #7a6870;
+            --outline: #e8d8dc;
+            --primary: #1a1215;
+            --accent: #f5a623;
+            --coral: #e8524a;
+            --rose: #d4447c;
+            --success: #10b981;
+            --gradient-hero: linear-gradient(135deg, #1a1215 0%, #3d1f2a 60%, #5a2d3e 100%);
+            --radius-md: 18px;
+            --radius-full: 9999px;
+            --shadow-card: 0 8px 30px rgba(212,68,124,0.1);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #fdf0f3;
+            color: var(--on-surface);
+            display: flex; justify-content: center;
+            min-height: 100vh;
+        }
+        .app-container {
+            width: 100%; max-width: 500px;
+            padding: 24px 20px;
+            display: flex; flex-direction: column;
+            gap: 20px;
+        }
+        .header {
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .back-btn {
+            display: flex; align-items: center; gap: 8px;
+            text-decoration: none; font-weight: 700; font-size: 14px;
+            color: var(--on-surface);
+            background: var(--surface); padding: 10px 16px;
+            border-radius: var(--radius-full); box-shadow: var(--shadow-card);
+        }
+        .brand { font-family: 'Manrope', sans-serif; font-size: 20px; font-weight: 900; }
+        
+        .track-card {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+            text-align: center;
+        }
+        .order-ref { font-family: 'Manrope', sans-serif; font-size: 24px; font-weight: 900; margin-bottom: 6px; }
+        .order-date { font-size: 13px; color: var(--on-surface-variant); margin-bottom: 24px; }
+        
+        /* STEPS */
+        .steps {
+            display: flex; flex-direction: column; gap: 16px;
+            text-align: left; position: relative;
+            padding-left: 20px; margin-bottom: 30px;
+        }
+        .steps::before {
+            content: ''; position: absolute;
+            top: 10px; bottom: 30px; left: 8px; width: 2px;
+            background: var(--outline);
+        }
+        
+        .step { position: relative; opacity: 0.4; transition: opacity 0.3s; }
+        .step.active { opacity: 1; }
+        
+        .step-indicator {
+            position: absolute; left: -20px; top: 2px;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 3px solid var(--outline);
+            z-index: 2; transition: all 0.3s;
+        }
+        .step.done .step-indicator { background: var(--success); border-color: var(--success); }
+        .step.done::after { content: '✓'; color: white; position: absolute; left: -14px; top: 4px; font-size: 10px; font-weight: 800; z-index: 3;}
+        
+        .step.current .step-indicator { border-color: var(--rose); border-width: 5px; }
+        
+        .step-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+        .step-desc { font-size: 12.5px; color: var(--on-surface-variant); line-height: 1.4; }
+        
+        /* CANCELLED STATE */
+        .cancelled-state { display: none; margin-top: 20px; padding: 16px; background: #fee2e2; border-radius: 12px; color: #991b1b; font-weight: 600; font-size: 14px; }
+        
+        /* LOADER */
+        .loader {
+            display: inline-block; width: 30px; height: 30px;
+            border: 3px solid var(--outline);
+            border-top-color: var(--rose);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .contact-box {
+            background: var(--surface-dim); border-radius: 12px;
+            padding: 16px; text-align: center;
+        }
+        .wa-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #25d366; color: white;
+            text-decoration: none; font-weight: 700; font-size: 14px;
+            padding: 12px 24px; border-radius: var(--radius-full);
+            margin-top: 12px; box-shadow: 0 4px 14px rgba(37,211,102,0.3);
+        }
+        
+        .driver-card {
+            background: var(--surface); border-radius: var(--radius-md);
+            padding: 20px; box-shadow: var(--shadow-card);
+            display: none; align-items: center; gap: 16px; margin-bottom: 20px;
+            border-left: 5px solid var(--success);
+        }
+        .driver-avatar {
+            width: 50px; height: 50px; background: var(--surface-dim);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: var(--rose); font-weight: 800;
+        }
+        .driver-info { text-align: left; flex: 1; }
+        .driver-name { font-weight: 700; font-size: 16px; }
+        .driver-status { font-size: 12px; color: var(--success); font-weight: 600; }
+        .call-btn {
+            background: var(--primary); color: white; border-radius: 50%;
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            text-decoration: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="header">
+            <a href="/" class="back-btn">← Retour</a>
+            <div class="brand">Lemontini</div>
+        </header>
+        
+        <div class="track-card" id="loadingState">
+            <div class="loader"></div>
+            <p style="margin-top:16px; font-weight:600">Recherche de la commande...</p>
+        </div>
+        
+        <div class="track-card" id="errorState" style="display:none; color:var(--coral)">
+            <h2>❌ Introuvable</h2>
+            <p style="margin-top:10px; font-size:14px">Nous ne trouvons pas cette commande.</p>
+        </div>
+        
+        <div class="track-card" id="trackState" style="display:none;">
+            <div class="order-ref" id="refText"></div>
+            <div class="order-date" id="dateText"></div>
+            
+            <div class="driver-card" id="driverCard">
+                <div class="driver-avatar" id="driverInitial">?</div>
+                <div class="driver-info">
+                    <div class="driver-status">Votre livreur est en route</div>
+                    <div class="driver-name" id="driverName">--</div>
+                </div>
+                <a href="#" class="call-btn" id="driverCall">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.88 12.88 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                </a>
+            </div>
+            
+            <div class="cancelled-state" id="cancelledMsg">
+                ⚠️ Cette commande a été annulée. Contactez-nous pour plus de détails.
+            </div>
+            
+            <div class="steps" id="stepsContainer">
+                <div class="step" id="s_nouveau">
+                    <div class="step-indicator"></div>
+                    <div class="step-title">Commande Reçue</div>
+                    <div class="step-desc">Nous avons bien reçu votre commande. Elle est en attente de traitement.</div>
+                </div>
+                <div class="step" id="s_confirme">
+                    <div class="step-indicator"></div>
+                    <div class="step-title">En Préparation (Acceptée)</div>
+                    <div class="step-desc">Notre équipe prépare vos produits avec soin.</div>
+                </div>
+                <div class="step" id="s_livre">
+                    <div class="step-indicator"></div>
+                    <div class="step-title">En Livraison / Livrée</div>
+                    <div class="step-desc">Votre commande est en route vers vous ou a déjà été livrée !</div>
+                </div>
+            </div>
+            
+            <div class="contact-box">
+                <p style="font-size:13px; font-weight:600; color:var(--on-surface-variant)">Une question sur votre livraison ?</p>
+                <a href="https://wa.me/2250700000000" target="_blank" class="wa-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    Contactez-nous
+                </a>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('id');
+
+    if (!orderId) {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('errorState').style.display = 'block';
+    } else {
+        fetchStatus();
+        // Polling every 10 seconds for real-time updates
+        setInterval(fetchStatus, 10000);
+    }
+
+    async function fetchStatus() {
+        try {
+            const res = await fetch(`/api/orders/track/${orderId}`);
+            if (!res.ok) throw new Error();
+            const order = await res.json();
+            
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('trackState').style.display = 'block';
+            
+            document.getElementById('refText').textContent = order.transactionId;
+            const d = new Date(order.createdAt);
+            document.getElementById('dateText').textContent = d.toLocaleDateString('fr-FR', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            }) + ' à ' + d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+            
+            // Reset steps
+            const steps = ['nouveau', 'confirme', 'livre'];
+            steps.forEach(s => {
+                const el = document.getElementById(`s_${s}`);
+                el.classList.remove('active', 'done', 'current');
+            });
+            
+            if (order.status === 'annule') {
+                document.getElementById('stepsContainer').style.display = 'none';
+                document.getElementById('cancelledMsg').style.display = 'block';
+            } else {
+                document.getElementById('stepsContainer').style.display = 'flex';
+                document.getElementById('cancelledMsg').style.display = 'none';
+                
+                let limit = steps.indexOf(order.status);
+                if (limit === -1) limit = 0; // fallback to nouveau
+                
+                for(let i=0; i<=limit; i++) {
+                    const el = document.getElementById(`s_${steps[i]}`);
+                    el.classList.add('active');
+                    if (i < limit) el.classList.add('done');
+                    else el.classList.add('current');
+                }
+            }
+            
+            // Driver info
+            const driverCard = document.getElementById('driverCard');
+            if (order.driver) {
+                driverCard.style.display = 'flex';
+                document.getElementById('driverName').textContent = order.driver.name;
+                document.getElementById('driverInitial').textContent = order.driver.name.charAt(0).toUpperCase();
+                document.getElementById('driverCall').href = `tel:${order.driver.phone}`;
+            } else {
+                driverCard.style.display = 'none';
+            }
+            
+        } catch(err) {
+            // Only show error initial load
+            if (document.getElementById('trackState').style.display === 'none') {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+            }
+        }
+    }
+</script>
+</body>
+</html>

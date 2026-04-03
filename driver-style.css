@@ -1,0 +1,105 @@
+:root {
+            --bg: #f9f5f0;
+            --card-bg: #ffffff;
+            --accent: #d4af37;
+            --success: #10b981;
+            --text: #1a1215;
+            --text-muted: #6b7280;
+            --glass: rgba(0, 0, 0, 0.02);
+            --border: rgba(0, 0, 0, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        header {
+            padding: 24px 20px;
+            background: linear-gradient(to bottom, rgba(212, 175, 55, 0.1), transparent);
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+        .driver-info h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: var(--accent); }
+        .driver-info p { font-size: 13px; color: var(--text-muted); }
+
+        /* ── TABS ── */
+        .tabs {
+            display: flex;
+            padding: 0 16px;
+            margin-top: -1px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 16px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* ── CONTENT ── */
+        .content { padding: 16px; min-height: 200px; }
+        .order-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.4s ease forwards;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .order-id { font-size: 13px; font-weight: 700; color: var(--accent); font-family: monospace; }
+        .order-time { font-size: 11px; color: var(--text-muted); }
+
+        .order-main { margin-bottom: 16px; }
+        .order-client { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+        .order-loc { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .order-loc svg { flex-shrink: 0; }
+
+        .order-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: var(--accent); color: #000; grid-column: span 2; margin-top: 4px; }
+        .btn-outline { background: var(--glass); border: 1px solid var(--border); color: var(--text); }
+        .btn-success { background: var(--success); color: #fff; grid-column: span 2; margin-top: 4px; }
+
+        .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty svg { margin-bottom: 12px; opacity: 0.3; }
+
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 100;
+        }
