@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Espace Livreur Lemontini</title>
+    <title>Lemontini | Driver</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="driver-style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -15,15 +16,35 @@
     </div>
 
     <header>
-        <div class="driver-info">
-            <p>Espace Livreur</p>
-            <h1 id="driverName">Chargement...</h1>
+        <div class="driver-profile">
+            <div class="avatar" id="driverAvatar">🚗</div>
+            <div class="driver-info">
+                <p>Bienvenue,</p>
+                <h1 id="driverName">Chargement...</h1>
+            </div>
+        </div>
+        <div class="stats-row">
+            <div class="stat-card">
+                <span class="stat-label">AUJOURD'HUI</span>
+                <span class="stat-value" id="todayEarnings">0 F</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">LIVRAISONS</span>
+                <span class="stat-value" id="todayCount">0</span>
+            </div>
         </div>
     </header>
 
-    <div class="tabs" id="tabContainer" style="display:none">
-        <div class="tab active" id="tabAvailable" onclick="switchTab('available')">DISPONIBLES</div>
-        <div class="tab" id="tabActive" onclick="switchTab('active')">MES COURSES</div>
+    <!-- Bottom Nav Float -->
+    <div class="bottom-nav">
+        <button class="nav-item active" id="btnAvailable" onclick="switchTab('available')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <span>Missions</span>
+        </button>
+        <button class="nav-item" id="btnActive" onclick="switchTab('active')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>Mes Tours</span>
+        </button>
     </div>
 
     <div class="content" id="orderList">
@@ -63,17 +84,28 @@
 
         async function loadOrders() {
             try {
-                const res = await fetch(`/api/orders/all`); // On utilise une route existante ou nouvelle
+                const res = await fetch(`/api/orders/all`);
                 const orders = await res.json();
+                calculateStats(orders);
                 renderOrders(orders);
             } catch(e) {}
         }
 
         function switchTab(tab) {
             currentTab = tab;
-            document.getElementById('tabAvailable').classList.toggle('active', tab === 'available');
-            document.getElementById('tabActive').classList.toggle('active', tab === 'active');
+            document.getElementById('btnAvailable').classList.toggle('active', tab === 'available');
+            document.getElementById('btnActive').classList.toggle('active', tab === 'active');
             loadOrders();
+        }
+
+        function calculateStats(orders) {
+            const today = new Date().toISOString().split('T')[0];
+            const myOrders = orders.filter(o => o.driver && o.driver.id === userId);
+            const todayOrders = myOrders.filter(o => o.status === 'termine' && o.updatedAt.startsWith(today));
+            
+            const earnings = todayOrders.reduce((sum, o) => sum + 1000, 0); // Disons 1000F par livraison
+            document.getElementById('todayEarnings').textContent = earnings.toLocaleString('fr-FR') + ' F';
+            document.getElementById('todayCount').textContent = todayOrders.length;
         }
 
         function renderOrders(orders) {
