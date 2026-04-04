@@ -94,17 +94,36 @@ const adminIds = (process.env.ADMIN_TELEGRAM_IDS || "").split(',').map(id => id.
 let bot = null; // Bot Admin (Annonces, Gestion)
 let driverBot = null; // Bot Livreur (Missions, Livreurs)
 
+const isVercel = !!process.env.VERCEL;
+
 if (process.env.TELEGRAM_BOT_TOKEN) {
-    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
-    console.log("🤖 Bot Admin activé");
+    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: !isVercel });
+    console.log("🤖 Bot Admin activé " + (isVercel ? "(Webhook)" : "(Polling)"));
 }
 
 if (process.env.TELEGRAM_DRIVER_BOT_TOKEN) {
-    driverBot = new TelegramBot(process.env.TELEGRAM_DRIVER_BOT_TOKEN, { polling: true });
-    console.log("🤖 Bot Livreur activé");
+    driverBot = new TelegramBot(process.env.TELEGRAM_DRIVER_BOT_TOKEN, { polling: !isVercel });
+    console.log("🤖 Bot Livreur activé " + (isVercel ? "(Webhook)" : "(Polling)"));
 }
 
 const activeBot = driverBot || bot;
+
+if (isVercel) {
+    const domain = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || 'lemontini.vercel.app';
+    if (bot) bot.setWebHook(`https://${domain}/api/telegram-webhook-admin`);
+    if (driverBot) driverBot.setWebHook(`https://${domain}/api/telegram-webhook-driver`);
+}
+
+// Routes express pour les webhooks Telegram (uniquement utiles sur Vercel)
+app.post('/api/telegram-webhook-admin', (req, res) => {
+    if (bot) bot.processUpdate(req.body);
+    res.status(200).send('OK');
+});
+
+app.post('/api/telegram-webhook-driver', (req, res) => {
+    if (driverBot) driverBot.processUpdate(req.body);
+    res.status(200).send('OK');
+});
 
 // ── API LIVREUR ──
 app.get('/api/driver/auth', async (req, res) => {
