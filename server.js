@@ -214,66 +214,131 @@ function setupTelegramHandlers(telegramBot) {
             return telegramBot.answerCallbackQuery(query.id, { text: "C'est parti ! 🚀" });
         }
 
-        // Changements de statuts divers
+        // ── Changements de statuts ──
         if (data.startsWith('status_')) {
             const parts = data.split('_');
-            const orderId = parts[1];
-            const newStatus = parts[2] === 'done' ? 'termine' : parts[2];
-            
-            await supabase.from('orders').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('transaction_id', orderId);
-            telegramBot.answerCallbackQuery(query.id, { text: `Statut mis à jour : ${newStatus}` });
-            
-            // On récupère la commande pour composer le WhatsApp
-            const { data: order } = await supabase.from('orders').select('*').eq('transaction_id', orderId).single();
-            
-            let statusEmoji = newStatus === 'termine' ? '🏁' : newStatus === 'livre' ? '🛵' : newStatus === 'confirme' ? '✅' : '❌';
-            let statusText = newStatus === 'termine' ? 'LIVRAISON TERMINÉE' : newStatus === 'livre' ? 'EN LIVRAISON' : newStatus === 'confirme' ? 'COMMANDE ACCEPTÉE' : 'COMMANDE ANNULÉE';
-            
-            const originalText = query.message.text || `📦 Commande : \`${orderId}\``;
-            
-            // Composer le message WhatsApp
-            let waMsg = `Bonjour ${order ? order.full_name : ''} 👋,\n\n`;
+            // Sécurité : dernier segment = action, tout le milieu = orderId (supporte les tirets dans l'ID)
+            const action   = parts[parts.length - 1];
+            const newStatus = action === 'done' ? 'termine' : action;
+            const orderId  = parts.slice(1, parts.length - 1).join('_');
+
+            // 1. Mise à jour Supabase
+            await supabase.from('orders')
+                .update({ status: newStatus, updated_at: new Date().toISOString() })
+                .eq('transaction_id', orderId);
+
+            // 2. Accusé de réception Telegram (toast discret)
+            const ackTexts = {
+                confirme: '✅ Commande acceptée !',
+                livre:    '🛵 En cours de livraison !',
+                annule:   '❌ Commande annulée.',
+                termine:  '🏁 Livraison terminée !'
+            };
+            await telegramBot.answerCallbackQuery(query.id, {
+                text: ackTexts[newStatus] || 'Statut mis à jour'
+            });
+
+            // 3. Récupérer la commande fraîche depuis Supabase
+            const { data: order } = await supabase.from('orders')
+                .select('*').eq('transaction_id', orderId).single();
+
+            // 4. Labels & emojis
+            const statusEmoji = { confirme:'✅', livre:'🛵', termine:'🏁', annule:'❌' }[newStatus] || '📦';
+            const statusLabel = {
+                confirme: 'COMMANDE ACCEPTÉE',
+                livre:    'EN LIVRAISON',
+                termine:  'LIVRAISON TERMINÉE',
+                annule:   'COMMANDE ANNULÉE'
+            }[newStatus] || newStatus.toUpperCase();
+
+            // 5. Message WhatsApp personnalisé selon le statut
+            const clientName = order ? order.full_name : '';
+            let waMsg = `Bonjour ${clientName} 👋,\n\n`;
             if (newStatus === 'confirme') {
-                waMsg += `✅ Votre commande n°${orderId} chez *Lemontini* est *en préparation*. Nous vous recontactons très vite pour l'expédition. 🌿`;
+                waMsg += `✅ Bonne nouvelle ! Votre commande *n°${orderId}* chez *Lemontini* est bien confirmée !\n\nNous la préparons avec soin 🌿 et vous contacterons très vite pour organiser la livraison.\n\nMerci de votre confiance 💕\n\n_Lemontini — Éclat Tropical_`;
             } else if (newStatus === 'livre') {
-                waMsg += `🚚 Votre colis n°${orderId} est *en cours de livraison* !\nSuivez l'avancée ici : https://cesarshop.vercel.app/track.html?id=${orderId}`;
+                waMsg += `🛵 Votre commande *n°${orderId}* est en route !\n\nNotre livreur est en cours de livraison vers chez vous. Gardez votre téléphone à portée 📱\n\nSuivez votre commande en direct ici :\nhttps://cesarshop.vercel.app/track.html?id=${orderId}\n\n_Lemontini — Éclat Tropical_`;
             } else if (newStatus === 'annule') {
-                waMsg += `❌ Votre commande n°${orderId} a été annulée. N'hésitez pas à nous contacter pour toute question. 🌿`;
+                waMsg += `Nous avons le regret de vous informer que votre commande *n°${orderId}* a été annulée.\n\nN'hésitez pas à nous recontacter sur WhatsApp pour plus d'informations. Nous sommes désolés pour la gêne occasionnée 🌿\n\n_Lemontini — Éclat Tropical_`;
             } else if (newStatus === 'termine') {
-                waMsg += `🏁 Votre commande n°${orderId} a été *livrée* avec succès. Merci de votre confiance ! 💖`;
+                waMsg += `🎉 Votre commande *n°${orderId}* a été livrée avec succès !\n\nNous espérons que vous adorez vos produits Lemontini 💕 Merci de votre confiance !\n\nN'oubliez pas de nous laisser un avis ⭐ sur notre site :\nhttps://cesarshop.vercel.app\n\n_Lemontini — Éclat Tropical_`;
             }
-            
+
+            // 6. Lien WhatsApp
             let phone = order ? order.phone.replace(/[^0-9]/g, '') : '';
             if (phone.length === 10 && !phone.startsWith('225')) phone = '225' + phone;
-            const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(waMsg)}`;
-            
-            // Préparer les boutons restants
-            const allButtons = [
-                { id: 'confirme', text: '✅ Accepté', callback_data: `status_${orderId}_confirme` },
-                { id: 'livre', text: '🛵 En livraison', callback_data: `status_${orderId}_livre` },
-                { id: 'annule', text: '❌ Annuler', callback_data: `status_${orderId}_annule` }
+            const waUrl = phone
+                ? `https://wa.me/${phone}?text=${encodeURIComponent(waMsg)}`
+                : null;
+
+            // 7. Reconstruire le clavier :
+            //    - retirer le bouton cliqué
+            //    - retirer tous les boutons si annulé ou terminé
+            //    - ajouter le bouton WhatsApp contextualisé en bas
+            const allActionButtons = [
+                { id: 'confirme', text: '✅ Accepté',     callback_data: `status_${orderId}_confirme` },
+                { id: 'livre',   text: '🛵 En livraison', callback_data: `status_${orderId}_livre`   },
+                { id: 'annule',  text: '❌ Annuler',      callback_data: `status_${orderId}_annule`  }
             ];
-            
-            const remainingButtons = allButtons.filter(b => b.id !== newStatus && newStatus !== 'termine');
-            
+
             let keyboard = [];
-            if (remainingButtons.length > 0) {
-                // On met les boutons restants sur une seule ligne
-                keyboard.push(remainingButtons);
+
+            // Boutons d'action restants (supprimé si terminal)
+            if (newStatus !== 'termine' && newStatus !== 'annule') {
+                const remaining = allActionButtons.filter(b => b.id !== newStatus);
+                if (remaining.length > 0) keyboard.push(remaining);
             }
-            // On ajoute le bouton WhatsApp en dessous (sauf si le tél est vide)
-            if (phone) {
-                keyboard.push([{ text: '💬 Envoyer un message WhatsApp', url: waUrl }]);
+
+            // Bouton WhatsApp personnalisé selon le statut
+            if (waUrl) {
+                const waLabels = {
+                    confirme: '💬 WhatsApp — Commande confirmée',
+                    livre:    '💬 WhatsApp — En cours de livraison',
+                    annule:   '💬 WhatsApp — Informer de l\'annulation',
+                    termine:  '💬 WhatsApp — Livraison terminée 🎉'
+                };
+                keyboard.push([{ text: waLabels[newStatus] || '💬 Envoyer un message WhatsApp', url: waUrl }]);
             }
-            
-            telegramBot.editMessageText(`Status mis à jour : ${statusEmoji} *${statusText}*\n\n${originalText.replace(/Status mis à jour.*\n\n?/, '')}`, {
-                chat_id: query.message.chat.id,
-                message_id: query.message.message_id,
-                parse_mode: 'Markdown',
-                reply_markup: {
-                    inline_keyboard: keyboard
-                }
-            });
+
+            // 8. Reconstruire le texte du message depuis Supabase (évite les bugs Markdown)
+            const items = order && order.items
+                ? (typeof order.items === 'string' ? JSON.parse(order.items) : order.items)
+                    .map(i => `• ${i.qty}x ${i.name}`).join('\n')
+                : '—';
+            const pymtLabel = { cash: '💵 Espèces', wave: '💙 Wave', orange: '🟠 Orange' }[order?.payment_type] || order?.payment_type || '—';
+            const total     = order ? Number(order.total_amount).toLocaleString('fr-FR') : '?';
+
+            const updatedMsg =
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `${statusEmoji} *${statusLabel}*\n` +
+                `━━━━━━━━━━━━━━━━━━━━\n\n` +
+                `🆔 *Réf :* \`${orderId}\`\n` +
+                `👤 *Client :* ${order?.full_name || '—'}\n` +
+                `📍 *Quartier :* *${(order?.city || '—').toUpperCase()}*\n` +
+                `🏠 *Lieu :* ${order?.address || '—'}\n\n` +
+                `💰 *Montant :* *${total} FCFA*\n\n` +
+                `📦 *Articles :*\n${items}\n\n` +
+                `💳 *Paiement :* ${pymtLabel}\n` +
+                `━━━━━━━━━━━━━━━━━━━━`;
+
+            // 9. Éditer le message Telegram
+            try {
+                await telegramBot.editMessageText(updatedMsg, {
+                    chat_id:    query.message.chat.id,
+                    message_id: query.message.message_id,
+                    parse_mode: 'Markdown',
+                    reply_markup: { inline_keyboard: keyboard }
+                });
+            } catch (err) {
+                console.error('editMessageText error:', err.message);
+                // Fallback : mise à jour du clavier uniquement
+                try {
+                    await telegramBot.editMessageReplyMarkup(
+                        { inline_keyboard: keyboard },
+                        { chat_id: query.message.chat.id, message_id: query.message.message_id }
+                    );
+                } catch (e2) { console.error('editMarkup fallback error:', e2.message); }
+            }
         }
     });
 
