@@ -115,13 +115,13 @@ if (isVercel) {
 }
 
 // Routes express pour les webhooks Telegram (uniquement utiles sur Vercel)
-app.post('/api/telegram-webhook-admin', (req, res) => {
-    if (bot) bot.processUpdate(req.body);
+app.post('/api/telegram-webhook-admin', async (req, res) => {
+    if (bot) await bot.processUpdate(req.body);
     res.status(200).send('OK');
 });
 
-app.post('/api/telegram-webhook-driver', (req, res) => {
-    if (driverBot) driverBot.processUpdate(req.body);
+app.post('/api/telegram-webhook-driver', async (req, res) => {
+    if (driverBot) await driverBot.processUpdate(req.body);
     res.status(200).send('OK');
 });
 
@@ -311,7 +311,7 @@ app.post('/api/reviews', async (req, res) => {
         if (bot && chatId) {
             const starText = "⭐".repeat(review.rating);
             const msg = `🌟 *NOUVEL AVIS REÇU !*\n\n👤 *Auteur :* ${review.author}\n⭐ *Note :* ${starText}\n📦 *Produit :* ${review.product}\n💬 *Commentaire :*\n"${review.comment}"`;
-            (driverBot || bot).sendMessage(driverChatId, msg, { parse_mode: 'Markdown' });
+            await (driverBot || bot).sendMessage(driverChatId, msg, { parse_mode: 'Markdown' });
         }
         res.json({ success: true });
     } catch(e) { res.status(500).send("Error"); }
@@ -363,7 +363,7 @@ app.post('/api/orders', async (req, res) => {
                         `━━━━━━━━━━━━━━━━━━━━\n` +
                         `👇 _Livreurs, cliquez ci-dessous pour prendre la course_`;
                         
-            (driverBot || bot).sendMessage(driverChatId, msg, {
+            await (driverBot || bot).sendMessage(driverChatId, msg, {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
