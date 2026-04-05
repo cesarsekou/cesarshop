@@ -165,8 +165,8 @@ app.post('/api/driver/claim', async (req, res) => {
 });
 
 // ── LOGIQUE TELEGRAM (CALLBACKS & COMMANDES) ──
-if (activeBot) {
-    activeBot.on('callback_query', async (query) => {
+function setupTelegramHandlers(telegramBot) {
+    telegramBot.on('callback_query', async (query) => {
         const data = query.data;
 
         // Approbation d'un nouveau livreur
@@ -177,16 +177,16 @@ if (activeBot) {
             const dName = parts.slice(2).join(' ');
 
             if (!adminIds.includes(query.from.id.toString())) {
-                return activeBot.answerCallbackQuery(query.id, { text: "❌ Action réservée aux admins.", show_alert: true });
+                return telegramBot.answerCallbackQuery(query.id, { text: "❌ Action réservée aux admins.", show_alert: true });
             }
 
             if (action === 'approve_') {
                 await supabase.from('drivers').update({ active: true }).eq('id', dId);
-                activeBot.sendMessage(dId, "✅ Votre compte livreur Lemontini a été APPROUVÉ ! Tapez /livreur pour commencer.");
-                activeBot.editMessageText(`✅ Livreur *${dName}* approuvé.`, { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'Markdown' });
+                telegramBot.sendMessage(dId, "✅ Votre compte livreur Lemontini a été APPROUVÉ ! Tapez /livreur pour commencer.");
+                telegramBot.editMessageText(`✅ Livreur *${dName}* approuvé.`, { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'Markdown' });
             } else {
                 await supabase.from('drivers').delete().eq('id', dId);
-                activeBot.editMessageText(`❌ Demande de *${dName}* refusée.`, { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'Markdown' });
+                telegramBot.editMessageText(`❌ Demande de *${dName}* refusée.`, { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'Markdown' });
             }
             return;
         }
@@ -197,21 +197,21 @@ if (activeBot) {
             const driverId = query.from.id.toString();
 
             const { data: driver } = await supabase.from('drivers').select('*').eq('id', driverId).single();
-            if (!driver) return activeBot.answerCallbackQuery(query.id, { text: "⚠️ Inscrivez-vous avec /inscription [Nom] [Tel]", show_alert: true });
-            if (!driver.active) return activeBot.answerCallbackQuery(query.id, { text: "⏳ En attente de validation admin.", show_alert: true });
+            if (!driver) return telegramBot.answerCallbackQuery(query.id, { text: "⚠️ Inscrivez-vous avec /inscription [Nom] [Tel]", show_alert: true });
+            if (!driver.active) return telegramBot.answerCallbackQuery(query.id, { text: "⏳ En attente de validation admin.", show_alert: true });
 
             const { data: order } = await supabase.from('orders').select('*').eq('transaction_id', orderId).single();
-            if (order.driver_id) return activeBot.answerCallbackQuery(query.id, { text: "❌ Déjà pris par un autre livreur.", show_alert: true });
+            if (order.driver_id) return telegramBot.answerCallbackQuery(query.id, { text: "❌ Déjà pris par un autre livreur.", show_alert: true });
 
             await supabase.from('orders').update({ driver_id: driverId, status: 'livre', updated_at: new Date().toISOString() }).eq('transaction_id', orderId);
 
-            activeBot.editMessageText(`🟢 *EN COURS DE LIVRAISON*\n🛵 Livreur : *${driver.name}*\n📦 Commande : \`${orderId}\``, {
+            telegramBot.editMessageText(`🟢 *EN COURS DE LIVRAISON*\n🛵 Livreur : *${driver.name}*\n📦 Commande : \`${orderId}\``, {
                 chat_id: query.message.chat.id,
                 message_id: query.message.message_id,
                 parse_mode: 'Markdown',
                 reply_markup: { inline_keyboard: [[{ text: "🏁 Marquer comme livré", callback_data: `status_${orderId}_done` }]] }
             });
-            return activeBot.answerCallbackQuery(query.id, { text: "C'est parti ! 🚀" });
+            return telegramBot.answerCallbackQuery(query.id, { text: "C'est parti ! 🚀" });
         }
 
         // Changements de statuts divers
@@ -221,24 +221,25 @@ if (activeBot) {
             const newStatus = parts[2] === 'done' ? 'termine' : parts[2];
             
             await supabase.from('orders').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('transaction_id', orderId);
-            activeBot.answerCallbackQuery(query.id, { text: `Statut mis à jour : ${newStatus}` });
+            telegramBot.answerCallbackQuery(query.id, { text: `Statut mis à jour : ${newStatus}` });
             
-            if (newStatus === 'termine') {
-                activeBot.editMessageText(`🏁 *LIVRAISON TERMINÉE*\n📦 Commande : \`${orderId}\`\n💰 Paiement encaissé. Merci !`, {
-                    chat_id: query.message.chat.id,
-                    message_id: query.message.message_id,
-                    parse_mode: 'Markdown'
-                });
-            }
+            let statusEmoji = newStatus === 'termine' ? '🏁' : newStatus === 'livre' ? '🛵' : newStatus === 'confirme' ? '✅' : '❌';
+            let statusText = newStatus === 'termine' ? 'LIVRAISON TERMINÉE' : newStatus === 'livre' ? 'EN LIVRAISON' : newStatus === 'confirme' ? 'COMMANDÉE ACCEPTÉE' : 'COMMANDE ANNULÉE';
+            
+            telegramBot.editMessageText(`Status mis à jour : ${statusEmoji} *${statusText}*\n📦 Commande : \`${orderId}\``, {
+                chat_id: query.message.chat.id,
+                message_id: query.message.message_id,
+                parse_mode: 'Markdown'
+            });
         }
     });
 
-    activeBot.onText(/\/inscription (.+) (.+)/, async (msg, match) => {
+    telegramBot.onText(/\/inscription (.+) (.+)/, async (msg, match) => {
         const dId = msg.from.id.toString();
         const name = match[1];
         const phone = match[2];
         await supabase.from('drivers').upsert({ id: dId, name, phone, active: false });
-        activeBot.sendMessage(msg.chat.id, "📩 *Demande envoyée !* Votre inscription est en attente de validation par l'administrateur.");
+        telegramBot.sendMessage(msg.chat.id, "📩 *Demande envoyée !* Votre inscription est en attente de validation par l'administrateur.");
         
         if (bot && chatId) {
             bot.sendMessage(chatId, `🔔 *NOUVEAU LIVREUR*\n👤 Nom : ${name}\n📞 Tel : ${phone}\n🆔 ID : \`${dId}\``, {
@@ -253,18 +254,22 @@ if (activeBot) {
         }
     });
 
-    activeBot.onText(/\/id/, (msg) => {
-        activeBot.sendMessage(msg.chat.id, `👤 Votre ID : \`${msg.from.id}\``, { parse_mode: 'Markdown' });
+    telegramBot.onText(/\/id/, (msg) => {
+        telegramBot.sendMessage(msg.chat.id, `👤 Votre ID : \`${msg.from.id}\``, { parse_mode: 'Markdown' });
     });
 
-    activeBot.onText(/^\/livreur/, (msg) => {
+    telegramBot.onText(/^\/livreur/, (msg) => {
         const webAppUrl = `https://${process.env.VERCEL_URL || 'localhost:3000'}/driver_app.html`;
-        activeBot.sendMessage(msg.chat.id, "📦 *Espace Livreur Lemontini*", {
+        telegramBot.sendMessage(msg.chat.id, "📦 *Espace Livreur Lemontini*", {
             parse_mode: 'Markdown',
             reply_markup: { inline_keyboard: [[{ text: "🚀 Ouvrir mon Espace", web_app: { url: webAppUrl } }]] }
         });
     });
 }
+
+if (bot) setupTelegramHandlers(bot);
+if (driverBot && driverBot !== bot) setupTelegramHandlers(driverBot);
+
 
 // ── API BOUTIQUE / ADMIN ──
 app.get('/api/orders/track/:id', async (req, res) => {
@@ -367,8 +372,9 @@ app.post('/api/orders', async (req, res) => {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
-                        [ { text: '⚙️ Confirmer', callback_data: `status_${order.transactionId}_confirme` },
-                          { text: '❌ Annuler', callback_data: `status_${order.transactionId}_annule` } ]
+                        [ { text: '✅ Accepté', callback_data: `status_${order.transactionId}_confirme` },
+                          { text: '🛵 En livraison', callback_data: `status_${order.transactionId}_livre` } ],
+                        [ { text: '❌ Annuler', callback_data: `status_${order.transactionId}_annule` } ]
                     ]
                 }
             }).catch(err => console.error("Telegram admin error:", err));
