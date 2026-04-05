@@ -397,7 +397,12 @@ module.exports = app;
 app.get('/api/debug-env', (req, res) => {
     res.json({
         vercel: process.env.VERCEL,
-        botToken: process.env.TELEGRAM_BOT_TOKEN ? 'SET' : 'MISSING',
-        chatId: process.env.TELEGRAM_CHAT_ID ? 'SET' : 'MISSING'
+        botToken: !!process.env.TELEGRAM_BOT_TOKEN,
+        chatId: process.env.TELEGRAM_CHAT_ID,
+        driverBotToken: !!process.env.TELEGRAM_DRIVER_BOT_TOKEN,
+        driverChatId: process.env.TELEGRAM_DRIVER_CHAT_ID,
+        botInstance: !!bot,
+        driverBotInstance: !!driverBot,
+        node_env: process.env.NODE_ENV
     });
 });
