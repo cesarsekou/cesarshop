@@ -393,3 +393,11 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
 }
 
 module.exports = app;
+
+app.get('/api/debug-env', (req, res) => {
+    res.json({
+        vercel: process.env.VERCEL,
+        botToken: process.env.TELEGRAM_BOT_TOKEN ? 'SET' : 'MISSING',
+        chatId: process.env.TELEGRAM_CHAT_ID ? 'SET' : 'MISSING'
+    });
+});
