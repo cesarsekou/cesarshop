@@ -351,7 +351,7 @@ app.post('/api/orders', async (req, res) => {
             const itemsList = (order.items||[]).map(i => `• ${i.qty}x ${i.name}`).join('\n');
             const paymentTypeMsg = order.paymentType === 'cash' ? '💵 Espèces' : order.paymentType === 'wave' ? '💙 Wave' : '🟠 Orange';
             
-            const msg = `━━━━━━━━━━━━━━━━━━━━\n` +
+            const baseMsg = `━━━━━━━━━━━━━━━━━━━━\n` +
                         `🚨 *NOUVELLE COMMANDE !* 🚨\n` +
                         `━━━━━━━━━━━━━━━━━━━━\n\n` +
                         `🆔 *Réf :* \`${order.transactionId}\` \n` +
@@ -360,22 +360,30 @@ app.post('/api/orders', async (req, res) => {
                         `💰 *MONTANT :* *${Number(order.totalAmount).toLocaleString('fr-FR')} FCFA*\n\n` +
                         `📦 *ARTICLES :*\n${itemsList}\n\n` +
                         `💳 *PAIEMENT :* ${paymentTypeMsg}\n` +
-                        `━━━━━━━━━━━━━━━━━━━━\n` +
-                        `👇 _Livreurs, cliquez ci-dessous pour prendre la course_`;
-                        
-            await (driverBot || bot).sendMessage(driverChatId, msg, {
+                        `━━━━━━━━━━━━━━━━━━━━\n`;
+
+            // 1. Message pour le groupe ADMIN (Commandes)
+            await bot.sendMessage(chatId, baseMsg + `_🔔 Notification Admin_`, {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
-                        [
-                            { text: '🛵 JE M\'EN OCCUPE !', callback_data: `claim_${order.transactionId}` }
-                        ],
-                        [
-                            { text: '⚙️ Gérer (Admin Only)', callback_data: `status_${order.transactionId}_confirme` }
-                        ]
+                        [ { text: '⚙️ Confirmer', callback_data: `status_${order.transactionId}_confirme` },
+                          { text: '❌ Annuler', callback_data: `status_${order.transactionId}_annule` } ]
                     ]
                 }
-            }).catch(err => console.error("Telegram error:", err));
+            }).catch(err => console.error("Telegram admin error:", err));
+
+            // 2. Message pour le groupe LIVREURS (si différent ou configuré)
+            if (driverBot && driverChatId) {
+                await driverBot.sendMessage(driverChatId, baseMsg + `👇 _Livreurs, cliquez ci-dessous pour prendre la course_`, {
+                    parse_mode: 'Markdown',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [ { text: '🛵 JE M\'EN OCCUPE !', callback_data: `claim_${order.transactionId}` } ]
+                        ]
+                    }
+                }).catch(err => console.error("Telegram driver error:", err));
+            }
         }
 
         res.json({ success: true, orderId: order.transactionId });
