@@ -115,13 +115,29 @@ if (isVercel) {
 }
 
 // Routes express pour les webhooks Telegram (uniquement utiles sur Vercel)
+const activePromises = new Set();
+global.trackPromise = function(promise) {
+    activePromises.add(promise);
+    promise.finally(() => activePromises.delete(promise));
+};
+
+const wrapHandler = (fn) => async (...args) => {
+    const p = Promise.resolve(fn(...args));
+    if (global.trackPromise) global.trackPromise(p);
+    await p;
+};
+
 app.post('/api/telegram-webhook-admin', async (req, res) => {
-    if (bot) await bot.processUpdate(req.body);
+    if (bot) bot.processUpdate(req.body);
+    await new Promise(r => setTimeout(r, 10)); // Laisser l'Event Loop déclencher les events
+    while(activePromises.size > 0) await Promise.all(Array.from(activePromises));
     res.status(200).send('OK');
 });
 
 app.post('/api/telegram-webhook-driver', async (req, res) => {
-    if (driverBot) await driverBot.processUpdate(req.body);
+    if (driverBot) driverBot.processUpdate(req.body);
+    await new Promise(r => setTimeout(r, 10));
+    while(activePromises.size > 0) await Promise.all(Array.from(activePromises));
     res.status(200).send('OK');
 });
 
@@ -183,7 +199,7 @@ app.post('/api/driver/complete', async (req, res) => {
 
 // ── LOGIQUE TELEGRAM (CALLBACKS & COMMANDES) ──
 function setupTelegramHandlers(telegramBot) {
-    telegramBot.on('callback_query', async (query) => {
+    telegramBot.on('callback_query', wrapHandler(async (query) => {
         const data = query.data;
 
         // Approbation d'un nouveau livreur
@@ -357,9 +373,9 @@ function setupTelegramHandlers(telegramBot) {
                 } catch (e2) { console.error('editMarkup fallback error:', e2.message); }
             }
         }
-    });
+    }));
 
-    telegramBot.onText(/\/inscription (.+) (.+)/, async (msg, match) => {
+    telegramBot.onText(/\/inscription (.+) (.+)/, wrapHandler(async (msg, match) => {
         const dId = msg.from.id.toString();
         const name = match[1];
         const phone = match[2];
@@ -377,19 +393,19 @@ function setupTelegramHandlers(telegramBot) {
                 }
             });
         }
-    });
+    }));
 
-    telegramBot.onText(/\/id/, (msg) => {
+    telegramBot.onText(/\/id/, wrapHandler((msg) => {
         telegramBot.sendMessage(msg.chat.id, `👤 Votre ID : \`${msg.from.id}\``, { parse_mode: 'Markdown' });
-    });
+    }));
 
-    telegramBot.onText(/^\/livreur/, (msg) => {
+    telegramBot.onText(/^\/livreur/, wrapHandler((msg) => {
         const webAppUrl = `https://${process.env.VERCEL_URL || 'localhost:3000'}/driver_app.html`;
         telegramBot.sendMessage(msg.chat.id, "📦 *Espace Livreur Lemontini*", {
             parse_mode: 'Markdown',
             reply_markup: { inline_keyboard: [[{ text: "🚀 Ouvrir mon Espace", web_app: { url: webAppUrl } }]] }
         });
-    });
+    }));
 }
 
 if (bot) setupTelegramHandlers(bot);
