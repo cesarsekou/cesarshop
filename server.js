@@ -239,21 +239,22 @@ function setupTelegramHandlers(telegramBot) {
             const newStatus = action === 'done' ? 'termine' : action;
             const orderId  = parts.slice(1, parts.length - 1).join('_');
 
-            // 1. Mise à jour Supabase
-            await supabase.from('orders')
-                .update({ status: newStatus, updated_at: new Date().toISOString() })
-                .eq('transaction_id', orderId);
-
-            // 2. Accusé de réception Telegram (toast discret)
+            // 1. Accusé de réception IMMÉDIAT (stoppe le chargement sur Telegram)
             const ackTexts = {
                 confirme: '✅ Commande acceptée !',
                 livre:    '🛵 En cours de livraison !',
                 annule:   '❌ Commande annulée.',
                 termine:  '🏁 Livraison terminée !'
             };
-            await telegramBot.answerCallbackQuery(query.id, {
+            // On ne fait pas de await ici pour ne pas bloquer l'exécution
+            telegramBot.answerCallbackQuery(query.id, {
                 text: ackTexts[newStatus] || 'Statut mis à jour'
-            });
+            }).catch(e => console.error("Ack error:", e));
+
+            // 2. Mise à jour Supabase
+            await supabase.from('orders')
+                .update({ status: newStatus, updated_at: new Date().toISOString() })
+                .eq('transaction_id', orderId);
 
             // 3. Récupérer la commande fraîche depuis Supabase
             const { data: order } = await supabase.from('orders')
@@ -288,24 +289,22 @@ function setupTelegramHandlers(telegramBot) {
                 ? `https://wa.me/${phone}?text=${encodeURIComponent(waMsg)}`
                 : null;
 
-            // 7. Reconstruire le clavier :
-            //    - retirer le bouton cliqué
-            //    - retirer tous les boutons si annulé ou terminé
-            //    - ajouter le bouton WhatsApp contextualisé en bas
-            const allActionButtons = [
-                { id: 'confirme', text: '✅ Accepté',      callback_data: `status_${orderId}_confirme` },
-                { id: 'livre',    text: '🛵 En livraison',  callback_data: `status_${orderId}_livre` },
-                { id: 'termine',  text: '🏁 Livré',        callback_data: `status_${orderId}_termine` },
-                { id: 'annule',   text: '❌ Annuler',       callback_data: `status_${orderId}_annule` }
-            ];
-
+            // 7. Reconstruire le clavier dynamiquement
+            // On ne propose que la suite logique
             let keyboard = [];
 
-            // Boutons d'action restants (supprimé si terminal)
-            if (newStatus !== 'termine' && newStatus !== 'annule') {
-                const remaining = allActionButtons.filter(b => b.id !== newStatus);
-                if (remaining.length > 0) keyboard.push(remaining);
+            if (newStatus === 'confirme') {
+                keyboard.push([
+                    { text: '🛵 En livraison', callback_data: `status_${orderId}_livre` },
+                    { text: '❌ Annuler',      callback_data: `status_${orderId}_annule` }
+                ]);
+            } else if (newStatus === 'livre') {
+                keyboard.push([
+                    { text: '🏁 Marquer Livré', callback_data: `status_${orderId}_termine` },
+                    { text: '❌ Annuler',       callback_data: `status_${orderId}_annule` }
+                ]);
             }
+            // Si c'est terminé ou annulé, on ne met plus de boutons d'action
 
             // Bouton WhatsApp personnalisé selon le statut
             if (waUrl) {
