@@ -151,7 +151,8 @@
                             <option value="">Tous les statuts</option>
                             <option value="nouveau">Nouveau</option>
                             <option value="confirme">Confirmé</option>
-                            <option value="livre">Livré</option>
+                            <option value="livre">En Livraison</option>
+                            <option value="termine">Livré</option>
                             <option value="annule">Annulé</option>
                         </select>
                         <select class="filter-select" id="payFilter" onchange="renderOrdersTable()">
@@ -224,7 +225,8 @@
     const statusBadge = (s) => ({
         nouveau:  '<span class="badge badge-nouveau">🆕 Nouveau</span>',
         confirme: '<span class="badge badge-confirme">✅ Confirmé</span>',
-        livre:    '<span class="badge badge-livre">📦 Livré</span>',
+        livre:    '<span class="badge badge-livre">🛵 En Livraison</span>',
+        termine:  '<span class="badge badge-termine">✅ Livré</span>',
         annule:   '<span class="badge badge-annule">❌ Annulé</span>',
     }[s] || `<span class="badge">${s}</span>`);
 
@@ -441,7 +443,7 @@
     function renderDashboard() {
         const total = allOrders.length;
         const nouveaux = allOrders.filter(o => o.status === 'nouveau').length;
-        const livrees = allOrders.filter(o => o.status === 'livre').length;
+        const livrees = allOrders.filter(o => o.status === 'termine').length;
         const waveOrders = allOrders.filter(o => o.paymentType === 'wave').length;
         const ca = allOrders.reduce((sum,o) => sum + (Number(o.totalAmount) - 2000), 0);
 
@@ -586,8 +588,16 @@
 
         // Status select
         const sel = document.getElementById('modalStatusSelect');
-        sel.innerHTML = ['nouveau','confirme','livre','annule'].map(s =>
-            `<option value="${s}" ${o.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`
+        const statusOptions = ['nouveau', 'confirme', 'livre', 'termine', 'annule'];
+        const statusLabels = {
+            nouveau: 'Nouveau',
+            confirme: 'Confirmé',
+            livre: 'En Livraison',
+            termine: 'Livré (Terminé)',
+            annule: 'Annulé'
+        };
+        sel.innerHTML = statusOptions.map(s =>
+            `<option value="${s}" ${o.status===s?'selected':''}>${statusLabels[s]}</option>`
         ).join('');
 
         // WA button

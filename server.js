@@ -164,6 +164,23 @@ app.post('/api/driver/claim', async (req, res) => {
     } catch(err) { res.status(500).json({ success: false }); }
 });
 
+app.post('/api/driver/complete', async (req, res) => {
+    const { orderId, driverId } = req.body;
+    try {
+        const { data: order } = await supabase.from('orders').select('driver_id').eq('transaction_id', orderId).single();
+        if (!order || order.driver_id !== driverId) {
+            return res.status(403).json({ success: false, error: 'Non autorisé' });
+        }
+
+        await supabase.from('orders').update({
+            status: 'termine',
+            updated_at: new Date().toISOString()
+        }).eq('transaction_id', orderId);
+
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ success: false }); }
+});
+
 // ── LOGIQUE TELEGRAM (CALLBACKS & COMMANDES) ──
 function setupTelegramHandlers(telegramBot) {
     telegramBot.on('callback_query', async (query) => {
@@ -276,9 +293,10 @@ function setupTelegramHandlers(telegramBot) {
             //    - retirer tous les boutons si annulé ou terminé
             //    - ajouter le bouton WhatsApp contextualisé en bas
             const allActionButtons = [
-                { id: 'confirme', text: '✅ Accepté',     callback_data: `status_${orderId}_confirme` },
-                { id: 'livre',   text: '🛵 En livraison', callback_data: `status_${orderId}_livre`   },
-                { id: 'annule',  text: '❌ Annuler',      callback_data: `status_${orderId}_annule`  }
+                { id: 'confirme', text: '✅ Accepté',      callback_data: `status_${orderId}_confirme` },
+                { id: 'livre',    text: '🛵 En livraison',  callback_data: `status_${orderId}_livre` },
+                { id: 'termine',  text: '🏁 Livré',        callback_data: `status_${orderId}_termine` },
+                { id: 'annule',   text: '❌ Annuler',       callback_data: `status_${orderId}_annule` }
             ];
 
             let keyboard = [];
@@ -482,7 +500,8 @@ app.post('/api/orders', async (req, res) => {
                     inline_keyboard: [
                         [ { text: '✅ Accepté', callback_data: `status_${order.transactionId}_confirme` },
                           { text: '🛵 En livraison', callback_data: `status_${order.transactionId}_livre` } ],
-                        [ { text: '❌ Annuler', callback_data: `status_${order.transactionId}_annule` } ]
+                        [ { text: '🏁 Marquer Livré', callback_data: `status_${order.transactionId}_termine` },
+                          { text: '❌ Annuler', callback_data: `status_${order.transactionId}_annule` } ]
                     ]
                 }
             }).catch(err => console.error("Telegram admin error:", err));

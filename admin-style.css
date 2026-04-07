@@ -327,6 +327,7 @@
         .badge-nouveau { background: var(--accent-light); color: var(--accent); }
         .badge-confirme { background: var(--success-light); color: var(--success); }
         .badge-livre { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+        .badge-termine { background: rgba(16,185,129,0.15); color: #10b981; }
         .badge-annule { background: var(--coral-light); color: var(--coral); }
 
         /* Actions */

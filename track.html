@@ -187,8 +187,13 @@
                 </div>
                 <div class="step" id="s_livre">
                     <div class="step-indicator"></div>
-                    <div class="step-title">En Livraison / Livrée</div>
-                    <div class="step-desc">Votre commande est en route vers vous ou a déjà été livrée !</div>
+                    <div class="step-title">En Livraison</div>
+                    <div class="step-desc">Votre livreur est en route vers votre adresse.</div>
+                </div>
+                <div class="step" id="s_termine">
+                    <div class="step-indicator"></div>
+                    <div class="step-title">Livrée</div>
+                    <div class="step-desc">Votre commande a été livrée avec succès. Merci !</div>
                 </div>
             </div>
             
@@ -231,7 +236,7 @@
             }) + ' à ' + d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
             
             // Reset steps
-            const steps = ['nouveau', 'confirme', 'livre'];
+            const steps = ['nouveau', 'confirme', 'livre', 'termine'];
             steps.forEach(s => {
                 const el = document.getElementById(`s_${s}`);
                 el.classList.remove('active', 'done', 'current');
